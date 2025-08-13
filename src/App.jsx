@@ -6,10 +6,20 @@ import "./App.css";
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
+  const [dbMsg, setDbMsg] = useState("");
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name }));
+  }
+
+  async function startDb() {
+    try {
+      await invoke("start_db");
+      setDbMsg("Database initalized successfully!");
+    } catch (err) {
+      setDbMsg(`Error: ${err}`);
+    }
   }
 
   return (
@@ -44,6 +54,12 @@ function App() {
         <button type="submit">Greet</button>
       </form>
       <p>{greetMsg}</p>
+
+      {/* New database initialization button */}
+      <div className="row">
+        <button onClick={startDb}>Initialize Database</button>
+      </div>
+      <p>{dbMsg}</p>
     </main>
   );
 }
