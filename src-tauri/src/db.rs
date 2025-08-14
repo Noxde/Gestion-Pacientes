@@ -1,5 +1,6 @@
 use rusqlite::{Connection, Result};
 use std::{path::PathBuf, fs};
+use crate::structs::Patient;
 
 pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
     let db_path = app_data_dir.join("db.sqlite");
@@ -24,4 +25,12 @@ pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
     println!("Db connection successful: {}", db_path.to_str().unwrap());
 
     Ok(conn)
+}
+
+pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patient, String> {
+    new_patient.id = conn.query_one("INSERT INTO patients (name) VALUES (?1) RETURNING id",
+        (&new_patient.name,), |row| row.get(0),
+        ).map_err(|e| format!("Failed to save the new patient: {}", e))?;
+
+    Ok(new_patient)
 }

@@ -4,18 +4,25 @@ import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [createdPatient, setCreatedPatient] = useState("");
   const [dbMsg, setDbMsg] = useState("");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+  async function savePatient() {
+    try {
+      const patient = await invoke("save_patient_comm", {
+        newPatient: { id: 0, name: patientName},
+      });
+      setCreatedPatient(patient);
+    } catch (err) {
+      setCreatedPatient({ error: err});
+    }
   }
 
-  async function startDb() {
+  async function initDb() {
     try {
-      await invoke("start_db");
+      await invoke("init_db_comm");
       setDbMsg("Database initalized successfully!");
     } catch (err) {
       setDbMsg(`Error: ${err}`);
@@ -39,25 +46,36 @@ function App() {
       </div>
       <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
+      {/* Patient creation form */}
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          greet();
+          savePatient();
         }}
       >
         <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+          id="patient-input"
+          value={patientName}
+          onChange={(e) => setPatientName(e.currentTarget.value)}
+          placeholder="Enter patient name..."
         />
-        <button type="submit">Greet</button>
+        <button type="submit">Save Patient</button>
       </form>
-      <p>{greetMsg}</p>
+
+      {/* Show created patient */}
+      {createdPatient && !createdPatient.error && (
+        <p>
+          Patient created &gt; Name: {createdPatient.name}, ID: {createdPatient.id}
+        </p>
+      )}
+      {createdPatient?.error && (
+        <p style={{ color: "red" }}>Error: {createdPatient.error}</p>
+      )}
 
       {/* New database initialization button */}
       <div className="row">
-        <button onClick={startDb}>Initialize Database</button>
+        <button onClick={initDb}>Initialize Database</button>
       </div>
       <p>{dbMsg}</p>
     </main>

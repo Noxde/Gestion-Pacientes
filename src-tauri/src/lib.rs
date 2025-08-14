@@ -1,9 +1,11 @@
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
-use crate::db::init_db;
+use crate::db::{init_db, save_patient};
+use crate::structs::Patient;
 use tauri::{State, Manager};
 
 mod db;
+mod structs;
 
 struct DbConn {
     conn: Mutex<Option<Connection>>,
@@ -14,13 +16,14 @@ pub fn run() {
     tauri::Builder::default()
         .manage(DbConn { conn: Mutex::new(None) })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, start_db])
+        .invoke_handler(tauri::generate_handler![
+            init_db_comm, save_patient_comm])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn start_db(app: tauri::AppHandle, state: State<DbConn>) -> Result<(), String> {
+fn init_db_comm(app: tauri::AppHandle, state: State<DbConn>) -> Result<(), String> {
     let app_data_dir = app.path()
         .app_data_dir()
         .map_err(|e| format!("Cannot find app data directory: {}", e.to_string()))?;
@@ -34,6 +37,8 @@ fn start_db(app: tauri::AppHandle, state: State<DbConn>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn save_patient_comm(state: State<DbConn>, new_patient: Patient) -> Result<Patient, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    save_patient(new_patient, conn_ref)
 }
