@@ -7,6 +7,7 @@ function App() {
   const [patientName, setPatientName] = useState("");
   const [createdPatient, setCreatedPatient] = useState("");
   const [dbMsg, setDbMsg] = useState("");
+  const [patients, setPatients] = useState([]); //store patients
 
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   async function savePatient() {
@@ -26,6 +27,15 @@ function App() {
       setDbMsg("Database initalized successfully!");
     } catch (err) {
       setDbMsg(`Error: ${err}`);
+    }
+  }
+
+  async function fetchPatients() {
+    try {
+      const result = await invoke("get_patients_comm");
+      setPatients(result);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
     }
   }
 
@@ -73,11 +83,26 @@ function App() {
         <p style={{ color: "red" }}>Error: {createdPatient.error}</p>
       )}
 
-      {/* New database initialization button */}
       <div className="row">
         <button onClick={initDb}>Initialize Database</button>
+        <button onClick={fetchPatients}>Load Patients</button>
       </div>
       <p>{dbMsg}</p>
+
+      {/* Patient list */}
+      {patients.length > 0 && (
+        <div>
+          <h2>Patients</h2>
+          <ul>
+            {patients.map((p) => (
+              <li key={p.id}>
+                {p.id} - {p.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
     </main>
   );
 }

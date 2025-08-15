@@ -1,6 +1,6 @@
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
-use crate::db::{init_db, save_patient};
+use crate::db::{init_db, save_patient, get_patients};
 use crate::structs::Patient;
 use tauri::{State, Manager};
 
@@ -17,7 +17,7 @@ pub fn run() {
         .manage(DbConn { conn: Mutex::new(None) })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            init_db_comm, save_patient_comm])
+            init_db_comm, save_patient_comm, get_patients_comm])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -41,4 +41,11 @@ fn save_patient_comm(state: State<DbConn>, new_patient: Patient) -> Result<Patie
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
     save_patient(new_patient, conn_ref)
+}
+
+#[tauri::command]
+fn get_patients_comm(state: State<DbConn>) -> Result<Vec<Patient>, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    get_patients(conn_ref)
 }

@@ -34,3 +34,15 @@ pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patie
 
     Ok(new_patient)
 }
+pub fn get_patients(conn: &Connection) -> Result<Vec<Patient>, String> {
+    let mut stmt = conn.prepare("SELECT id, name FROM patients").map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let patients_iter = stmt.query_map([], |row| {
+        Ok(Patient {
+            id: row.get(0)?,
+            name: row.get(1)?,
+        })}).map_err(|e| format!("Failed to map patients: {}", e))?;
+
+    let patients: Result<Vec<Patient>, _> = patients_iter.collect();
+    patients.map_err(|e| format!("Failed to collect patients: {}", e))
+}
