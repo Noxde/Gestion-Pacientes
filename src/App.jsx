@@ -1,7 +1,10 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import "./globals.css";
+
+import SideBar from "@/components/ui/sideBar";
+import PatientInfo from "./components/ui/patientInfo";
+import AddPatient from "./components/ui/addPatient";
 
 function App() {
   const [patientName, setPatientName] = useState("");
@@ -9,15 +12,17 @@ function App() {
   const [dbMsg, setDbMsg] = useState("");
   const [patients, setPatients] = useState([]); //store patients
 
+  const [selected, setSelected] = useState(null);
+  const [addPatient, setAddPatient] = useState(false);
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   async function savePatient() {
     try {
       const patient = await invoke("save_patient_comm", {
-        newPatient: { id: 0, name: patientName},
+        newPatient: { id: 0, name: patientName },
       });
       setCreatedPatient(patient);
     } catch (err) {
-      setCreatedPatient({ error: err});
+      setCreatedPatient({ error: err });
     }
   }
 
@@ -46,69 +51,19 @@ function App() {
   }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main className="h-dvh bg-gray-100 grid grid-cols-[300px_1fr] min-h-0">
+      <SideBar
+        setAddPatient={setAddPatient}
+        setSelected={setSelected}
+        selected={selected}
+      />
+      <div className="bg-white border rounded-md ml-5 m-2">
+        {addPatient ? (
+          <AddPatient setAddPatient={setAddPatient} />
+        ) : (
+          <PatientInfo selected={selected} />
+        )}
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      {/* Patient creation form */}
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          savePatient();
-        }}
-      >
-        <input
-          id="patient-input"
-          value={patientName}
-          onChange={(e) => setPatientName(e.currentTarget.value)}
-          placeholder="Enter patient name..."
-        />
-        <button type="submit">Save Patient</button>
-      </form>
-
-      {/* Show created patient */}
-      {createdPatient && !createdPatient.error && (
-        <p>
-          Patient created &gt; Name: {createdPatient.name}, ID: {createdPatient.id}
-        </p>
-      )}
-      {createdPatient?.error && (
-        <p style={{ color: "red" }}>Error: {createdPatient.error}</p>
-      )}
-
-      <div className="row">
-        <button onClick={initDb}>Initialize Database</button>
-        <button onClick={fetchPatients}>Load Patients</button>
-      </div>
-      <p>{dbMsg}</p>
-
-      {/* Patient list */}
-      {patients.length > 0 && (
-        <div>
-          <h2>Patients</h2>
-          <ul>
-            {patients.map((p) => (
-              <li key={p.id}>
-                {p.id} - {p.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
     </main>
   );
 }
