@@ -30,6 +30,12 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    initDb().then(() => {
+      fetchPatients();
+    });
+  }, []);
+
   async function fetchPatients() {
     try {
       const result = await invoke("get_patients_comm");
