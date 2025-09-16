@@ -1052,18 +1052,23 @@ function App() {
   }
 
   return (
-    <main className="h-dvh bg-gray-100 grid grid-cols-[300px_1fr] min-h-0">
+    <main className="h-dvh bg-gray-100 grid grid-cols-[300px_1fr] gap-5">
       <SideBar
+        patients={patients}
         setAddPatient={setAddPatient}
         setSelected={setSelected}
         selected={selected}
       />
-      <div className="bg-white border rounded-md ml-5 m-2">
-        {addPatient ? (
-          <AddPatient setAddPatient={setAddPatient} />
-        ) : (
-          <PatientInfo selected={selected} />
-        )}
+      <div className="h-full p-5 min-h-0">
+        <div className="border bg-white rounded-md overflow-hidden h-full p-5">
+          {!selected && !addPatient ? (
+            <div>Selecciona un paciente...</div>
+          ) : null}
+          {selected && !addPatient ? <PatientInfo selected={selected} /> : null}
+          {addPatient && !selected ? (
+            <AddPatient setAddPatient={setAddPatient} />
+          ) : null}
+        </div>
       </div>
     </main>
   );
