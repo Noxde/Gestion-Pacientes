@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-function PatientItem({ onClick, className }) {
+function PatientItem({ patient, onClick, className }) {
   return (
     <div
       onClick={onClick}
@@ -10,8 +10,10 @@ function PatientItem({ onClick, className }) {
         className
       )}
     >
-      <span className="font-bold">Nombre Apellido</span>
-      <span>DNI 123456789</span>
+      <span className="font-bold">
+        {patient.nombre} {patient.apellido}
+      </span>
+      <span>DNI {patient.DNI}</span>
     </div>
   );
 }
