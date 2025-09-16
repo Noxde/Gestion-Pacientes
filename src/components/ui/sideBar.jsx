@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PatientItem from "@/components/ui/patientItem";
 
-function SideBar({ setAddPatient, setSelected, selected }) {
+function SideBar({ patients, setAddPatient, setSelected, selected }) {
   return (
     <div className="bg-white border flex flex-col pt-5 h-full overflow-hidden">
       {/* Top */}
@@ -18,21 +18,29 @@ function SideBar({ setAddPatient, setSelected, selected }) {
           />
         </div>
         <Button
-          onClick={() => setAddPatient(true)}
+          onClick={() => {
+            setAddPatient(true);
+            setSelected(null);
+          }}
           className="mt-2 w-full cursor-pointer"
         >
           <Plus className="text-gray-50" />
           Agregar Paciente
         </Button>
       </div>
+
       {/* Patient list */}
       <div className="patient-list flex flex-col h-full min-h-0">
         <h3 className="font-bold text-xl px-5 pb-2 border-b">Pacientes</h3>
         <div className="patients flex-1 overflow-y-scroll ">
-          {new Array(10).fill("").map((_, i) => (
+          {patients.map((p, i) => (
             <PatientItem
-              className={selected === i ? "bg-blue-50" : ""}
-              onClick={() => setSelected(i)}
+              patient={p}
+              className={selected?.DNI === p.DNI ? "bg-blue-50" : ""}
+              onClick={() => {
+                setSelected(p);
+                setAddPatient(false);
+              }}
             />
           ))}
         </div>
