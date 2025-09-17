@@ -14,7 +14,11 @@ const Visita = forwardRef(function ({ className, readOnly, visita }, ref) {
           readOnly={readOnly}
           label={"Fecha de Consulta"}
         />
-        <InputLabel value={visita?.motivo} readOnly={readOnly} />
+        <InputLabel
+          label={"Motivo de Consulta"}
+          value={visita?.motivo}
+          readOnly={readOnly}
+        />
       </div>
       <AreaLabel
         value={visita?.diagnostico}
