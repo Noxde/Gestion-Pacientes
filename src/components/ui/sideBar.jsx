@@ -2,8 +2,12 @@ import { Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PatientItem from "@/components/ui/patientItem";
+import { useContext } from "react";
+import { PatientsContext } from "@/context/patientsContext";
 
-function SideBar({ patients, setAddPatient, setSelected, selected }) {
+function SideBar({ setAddPatient }) {
+  const { patients, setSelected, selected } = useContext(PatientsContext);
+
   return (
     <div className="bg-white border flex flex-col pt-5 h-full overflow-hidden">
       {/* Top */}
@@ -36,7 +40,9 @@ function SideBar({ patients, setAddPatient, setSelected, selected }) {
           {patients.map((p, i) => (
             <PatientItem
               patient={p}
-              className={selected?.DNI === p.DNI ? "bg-blue-50" : ""}
+              className={
+                selected?.national_id === p.national_id ? "bg-blue-50" : ""
+              }
               onClick={() => {
                 setSelected(p);
                 setAddPatient(false);
