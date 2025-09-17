@@ -43,8 +43,8 @@ function PatientInfo({ selected }) {
         {/* Info */}
         <div className="flex items-center justify-between">
           <span className="">
-            {selected?.nombre} {selected?.apellido} /{" "}
-            {selected?.numero_obra_social} / {selected?.DNI}
+            {selected?.name} {selected?.surname} / {selected?.medicare_number} /{" "}
+            {selected?.national_id}
           </span>
 
           <Button className="cursor-pointer" onClick={() => console.log(refs)}>
