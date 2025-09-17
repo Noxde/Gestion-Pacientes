@@ -1,70 +1,99 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { invoke } from "@tauri-apps/api/core";
+import { PatientsContext } from "@/context/patientsContext";
+import InputLabel from "./inputLabel";
 
 function AddPatient({ setAddPatient }) {
+  const { setPatients, setSelected } = useContext(PatientsContext);
+  const [form, setForm] = useState({
+    id: 1, // Needed to call the rust function but not used
+  });
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
   return (
     <div className="p-5 h-full rounded-md">
       <h2 className="text-xl text-gray-700 mb-5">Agregar Paciente</h2>
       <div className="border p-5 rounded-sm flex flex-col">
-        {/* Left */}
         <div className="grid grid-cols-2 grid-rows-4 gap-x-10 gap-y-5">
+          <InputLabel
+            label={"Nombre"}
+            name="name"
+            onChange={handleChange}
+            placeholder="Ingresa el nombre"
+          />
+          <InputLabel
+            label={"Apellido"}
+            name="surname"
+            onChange={handleChange}
+            placeholder="Ingresa el apellido"
+          />
+          <InputLabel
+            label={"DNI"}
+            name="national_id"
+            onChange={handleChange}
+            placeholder="Ingresa el DNI"
+          />
+          <InputLabel
+            label={"Numero de Telefono"}
+            name="phone"
+            onChange={handleChange}
+            placeholder="Ingresa el telefono"
+          />
+          <InputLabel
+            label={"Obra Social"}
+            name="medicare"
+            onChange={handleChange}
+            placeholder="Ingresa la obra social"
+          />
+          <InputLabel
+            label={"Nro de Obra Social"}
+            name="medicare_number"
+            onChange={handleChange}
+            placeholder="Ingresa el nro de obra social"
+          />
+
           <Label className="block text-md">
-            Nombre
-            <Input placeholder="Ingresa el nombre" />
-          </Label>
-          <Label className="block text-md">
-            Apellido
-            <Input placeholder="Ingresa el apellido" />
-          </Label>
-          <Label className="block text-md">
-            DNI
-            <Input placeholder="Ingresa el DNI" />
-          </Label>
-          <Label className="block text-md">
-            Numero de Telefono
-            <Input placeholder="Ingresa el telefono" />
-          </Label>
-          <Label className="block text-md">
-            Obra Social
-            <Input placeholder="Ingresa la obra social" />
-          </Label>
-          <Label className="block text-md">
-            Nro de Obra Social
-            <Input placeholder="Ingresa el nro de obra social" />
-          </Label>
-          <Label className="block text-md">
-            Sexo{" "}
-            <Select>
+            Sexo
+            <Select
+              name="sex"
+              onValueChange={(e) => setForm((prev) => ({ ...prev, sex: e }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona el sexo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="m">M</SelectItem>
-                  <SelectItem value="f">F</SelectItem>
+                  <SelectItem value="M">M</SelectItem>
+                  <SelectItem value="F">F</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </Label>
-          <Label className="block text-md">
-            Genero
-            <Input placeholder="Ingresa el genero" />
-          </Label>
+          <InputLabel
+            label="Genero"
+            name="gender"
+            onChange={handleChange}
+            placeholder="Ingresa el genero"
+          />
         </div>
 
         <Separator className="my-7" />
+
         <div className="self-end">
           <Button
             onClick={() => setAddPatient(false)}
@@ -73,7 +102,25 @@ function AddPatient({ setAddPatient }) {
           >
             Cancelar
           </Button>
-          <Button className="font-bold">Guardar Paciente</Button>
+
+          {/* TODO: Check that all inputs are filled before being able to save */}
+          <Button
+            onClick={async () => {
+              try {
+                const r = await invoke("save_patient_comm", {
+                  newPatient: form,
+                });
+                setPatients((prev) => [...prev, r]);
+                setSelected(r);
+                setAddPatient(false);
+              } catch (err) {
+                console.log(err);
+              }
+            }}
+            className="font-bold"
+          >
+            Guardar Paciente
+          </Button>
         </div>
       </div>
     </div>
