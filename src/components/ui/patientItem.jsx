@@ -11,9 +11,9 @@ function PatientItem({ patient, onClick, className }) {
       )}
     >
       <span className="font-bold">
-        {patient.nombre} {patient.apellido}
+        {patient.name} {patient.surname}
       </span>
-      <span>DNI {patient.DNI}</span>
+      <span>DNI {patient.national_id}</span>
     </div>
   );
 }
