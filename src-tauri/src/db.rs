@@ -27,8 +27,8 @@ pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
 pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patient, String> {
     match conn
         .query_one(
-            "INSERT INTO patients (name, surname, national_id, phone, medicare, medicare_number, sex, genre) 
-                        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) RETURNING id",
+            "INSERT INTO patients (name, surname, national_id, phone, medicare, medicare_number, sex, gender, description) 
+                        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) RETURNING id",
             (
                 &new_patient.name,
                 &new_patient.surname,
@@ -37,7 +37,8 @@ pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patie
                 &new_patient.medicare,
                 &new_patient.medicare_number,
                 &new_patient.sex,
-                &new_patient.genre,
+                &new_patient.gender,
+                &new_patient.description,
             ),
             |row| row.get(0),
         ) {
@@ -72,7 +73,8 @@ pub fn get_patients(conn: &Connection) -> Result<Vec<Patient>, String> {
                 medicare: row.get("medicare")?,
                 medicare_number: row.get("medicare_number")?,
                 sex: row.get("sex")?,
-                genre: row.get("genre")?,
+                gender: row.get("gender")?,
+                description: row.get("description")?,
             })
         })
         .map_err(|e| format!("Failed to get patients: {}", e))?;

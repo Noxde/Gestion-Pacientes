@@ -26,7 +26,8 @@ mod tests {
             medicare: Some("PlanA".to_string()),
             medicare_number: Some("987654".to_string()),
             sex: "M".to_string(),
-            genre: "Male".to_string(),
+            gender: "Male".to_string(),
+            description: Some("Lupus".to_string()),
         }
     }
 
@@ -35,9 +36,13 @@ mod tests {
         let conn = setup_test_db();
         let patient = sample_patient();
 
-        let saved = save_patient(patient, &conn).expect("Should save patient");
-        assert_eq!(saved.name, "Gregory");
-        assert_eq!(saved.medicare, Some("PlanA".to_string()));
+        save_patient(patient, &conn).expect("Should save patient");
+        let patients = get_patients(&conn).expect("Should get patients");
+
+        assert_eq!(patients.len(), 1);
+        assert_eq!(patients[0].name, "Gregory");
+        assert_eq!(patients[0].medicare, Some("PlanA".to_string()));
+        assert_eq!(patients[0].description, Some("Lupus".to_string()));
     }
 
     #[test]
@@ -62,16 +67,5 @@ mod tests {
 
         let patients = get_patients(&conn).expect("Should get patients");
         assert_eq!(patients.len(), 0);
-    }
-
-    #[test]
-    fn test_get_patients_after_insert() {
-        let conn = setup_test_db();
-        let patient = sample_patient();
-
-        save_patient(patient, &conn).expect("Should save patient");
-        let patients = get_patients(&conn).expect("Should get patients");
-        assert_eq!(patients.len(), 1);
-        assert_eq!(patients[0].name, "Gregory");
     }
 }

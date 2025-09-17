@@ -10,5 +10,6 @@ pub struct Patient {
     pub medicare: Option<String>,
     pub medicare_number: Option<String>,
     pub sex: String,
-    pub genre: String,
+    pub gender: String,
+    pub description: Option<String>,
 }
