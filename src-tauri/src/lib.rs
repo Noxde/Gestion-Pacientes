@@ -1,11 +1,12 @@
+use crate::db::{get_patients, init_db, save_patient};
+use crate::structs::Patient;
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
-use crate::db::{init_db, save_patient, get_patients};
-use crate::structs::Patient;
-use tauri::{State, Manager};
+use tauri::{Manager, State};
 
 mod db;
 mod structs;
+mod tests;
 
 struct DbConn {
     conn: Mutex<Option<Connection>>,
@@ -14,17 +15,23 @@ struct DbConn {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(DbConn { conn: Mutex::new(None) })
+        .manage(DbConn {
+            conn: Mutex::new(None),
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            init_db_comm, save_patient_comm, get_patients_comm])
+            init_db_comm,
+            save_patient_comm,
+            get_patients_comm
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
 fn init_db_comm(app: tauri::AppHandle, state: State<DbConn>) -> Result<(), String> {
-    let app_data_dir = app.path()
+    let app_data_dir = app
+        .path()
         .app_data_dir()
         .map_err(|e| format!("Cannot find app data directory: {}", e.to_string()))?;
 
