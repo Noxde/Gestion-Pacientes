@@ -1,11 +1,11 @@
+use crate::custom_types::structs::Patient;
 use crate::db::{get_patients, init_db, save_patient};
-use crate::structs::Patient;
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 
+mod custom_types;
 mod db;
-mod structs;
 mod tests;
 
 struct DbConn {

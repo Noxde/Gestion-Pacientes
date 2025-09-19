@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
+    use crate::custom_types::enums::*;
+    use crate::custom_types::structs::*;
     use crate::db::*;
-    use crate::structs::*;
     use rusqlite::Connection;
     use std::{fs, path::PathBuf};
 
@@ -25,7 +26,7 @@ mod tests {
             phone: "555-1234".to_string(),
             medicare: Some("PlanA".to_string()),
             medicare_number: Some("987654".to_string()),
-            sex: "M".to_string(),
+            sex: Sex::Male,
             gender: Some("Male".to_string()),
             description: Some("Lupus".to_string()),
         }

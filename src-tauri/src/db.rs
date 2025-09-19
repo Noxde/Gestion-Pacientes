@@ -1,4 +1,4 @@
-use crate::structs::Patient;
+use crate::custom_types::structs::Patient;
 use rusqlite::{Connection, Result};
 use std::{fs, path::PathBuf};
 use validator::Validate;
@@ -28,7 +28,7 @@ pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
 pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patient, String> {
     new_patient
         .validate()
-        .map_err(|e| format!("Patient data Validation error: {}", e))?;
+        .map_err(|e| format!("Patient data validation error: {}", e))?;
 
     match conn
         .query_one(

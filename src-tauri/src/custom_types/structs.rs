@@ -1,3 +1,4 @@
+use crate::custom_types::enums::Sex;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -14,7 +15,7 @@ pub struct Patient {
     pub phone: String,
     pub medicare: Option<String>,
     pub medicare_number: Option<String>,
-    pub sex: String,
+    pub sex: Sex,
     pub gender: Option<String>,
     pub description: Option<String>,
 }
