@@ -15,6 +15,8 @@ import Visita from "./visita";
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
   const refs = useRef([]);
+  const [toAdd, setToAdd] = useState({});
+  const [visitas, setVisitas] = useState([]);
 
   useEffect(() => {
     refs.current[showing]?.scrollIntoView({
@@ -29,16 +31,24 @@ function PatientInfo({ selected }) {
         <DialogHeader>
           <DialogTitle>Agregar Visita</DialogTitle>
         </DialogHeader>
+
         <Separator />
-        <Visita />
+        <Visita onChange={(e) => setToAdd(e)} />
         <Separator />
+
         <div className="flex gap-2 justify-self-end">
           <Button asChild variant={"outline"}>
             <DialogClose>Cancelar</DialogClose>
           </Button>
-          <Button>Agregar</Button>
+          <Button
+            asChild
+            onClick={() => setVisitas((prev) => [toAdd, ...prev])}
+          >
+            <DialogClose>Agregar</DialogClose>
+          </Button>
         </div>
       </DialogContent>
+
       <div className=" flex flex-col h-full">
         {/* Info */}
         <div className="flex items-center justify-between">
@@ -56,7 +66,7 @@ function PatientInfo({ selected }) {
         {/* Visits */}
         <div className="flex items-center justify-between mb-5">
           <span className="flex items-center gap-2 text-xl">
-            <FileText /> Historial de Visitas
+            <FileText /> Historial de Visitas ({visitas.length})
           </span>
 
           <Button asChild>
@@ -67,19 +77,15 @@ function PatientInfo({ selected }) {
         {/* scroll */}
         <div className="h-full grid grid-cols-[1fr_50px] min-h-0 relative rounded-md border">
           <div className="flex flex-col px-20 overflow-auto">
-            {new Array(10).fill("").map((_, i) => (
+            {visitas.map((x, i, arr) => (
               <>
                 <Visita
                   readOnly
                   className="py-5"
-                  visita={{
-                    fecha: new Date("05-12-2025"),
-                    motivo: "test",
-                    diagnostico: "Test\nTest",
-                  }}
-                  ref={(el) => refs.current.push(el)}
+                  visita={x}
+                  ref={(el) => (refs.current[i] = el)}
                 />
-                {i < 9 ? <Separator /> : null}
+                {i < arr.length - 1 ? <Separator /> : null}
               </>
             ))}
           </div>
@@ -90,7 +96,7 @@ function PatientInfo({ selected }) {
               onClick={() =>
                 setShowing((prev) => {
                   if (prev - 1 < 0) {
-                    return 9;
+                    return visitas.length - 1;
                   } else {
                     return prev - 1;
                   }
@@ -103,7 +109,7 @@ function PatientInfo({ selected }) {
               className="h-[75px]"
               onClick={() =>
                 setShowing((prev) => {
-                  if (prev + 1 > 9) {
+                  if (prev + 1 > visitas.length - 1) {
                     return 0;
                   } else {
                     return prev + 1;
