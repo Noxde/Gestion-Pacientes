@@ -78,8 +78,8 @@ function AddPatient({ setAddPatient }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="M">M</SelectItem>
-                  <SelectItem value="F">F</SelectItem>
+                  <SelectItem value="Male">M</SelectItem>
+                  <SelectItem value="Female">F</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
