@@ -1,6 +1,7 @@
 use crate::structs::Patient;
 use rusqlite::{Connection, Result};
 use std::{fs, path::PathBuf};
+use validator::Validate;
 
 pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
     let db_path = app_data_dir.join("db.sqlite");
@@ -25,6 +26,10 @@ pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
 }
 
 pub fn save_patient(mut new_patient: Patient, conn: &Connection) -> Result<Patient, String> {
+    new_patient
+        .validate()
+        .map_err(|e| format!("Patient data Validation error: {}", e))?;
+
     match conn
         .query_one(
             "INSERT INTO patients (name, surname, national_id, phone, medicare, medicare_number, sex, gender, description) 

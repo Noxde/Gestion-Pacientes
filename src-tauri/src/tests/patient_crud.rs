@@ -26,7 +26,7 @@ mod tests {
             medicare: Some("PlanA".to_string()),
             medicare_number: Some("987654".to_string()),
             sex: "M".to_string(),
-            gender: "Male".to_string(),
+            gender: Some("Male".to_string()),
             description: Some("Lupus".to_string()),
         }
     }
@@ -67,5 +67,19 @@ mod tests {
 
         let patients = get_patients(&conn).expect("Should get patients");
         assert_eq!(patients.len(), 0);
+    }
+
+    #[test]
+    fn test_save_patient_failure_for_bad_request() {
+        let conn = setup_test_db();
+        let mut bad_patient = sample_patient();
+        bad_patient.national_id = "".to_string();
+
+        let result = save_patient(bad_patient, &conn);
+        assert!(result.is_err());
+        assert!(result
+            .err()
+            .unwrap()
+            .contains("National ID cannot be empty"));
     }
 }
