@@ -8,7 +8,7 @@ BEGIN;
             medicare TEXT,
             medicare_number varchar(50),
             sex TEXT CHECK(sex IN ('M', 'F', '-')) NOT NULL,
-            gender TEXT NOT NULL,
+            gender TEXT,
             description TEXT,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
