@@ -14,8 +14,8 @@ pub fn init_db(app_data_dir: PathBuf) -> Result<Connection, String> {
     let conn = Connection::open(&db_path)
         .map_err(|e| format!("Database connection failed: {}", e.to_string()))?;
 
-    let schema = std::fs::read_to_string("schema.sql")
-        .map_err(|e| format!("Failed to read database file: {}", e.to_string()))?;
+    // Embed te schema at compile time
+    let schema = include_str!("../schema.sql");
 
     conn.execute_batch(&schema)
         .map_err(|e| format!("Failed to create tables: {}", e.to_string()))?;
