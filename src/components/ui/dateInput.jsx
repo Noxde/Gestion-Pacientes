@@ -31,7 +31,7 @@ function isValidDate(date) {
   return !isNaN(date.getTime());
 }
 
-export function Calendar28({ label, readOnly, dateValue }) {
+export function Calendar28({ label, readOnly, dateValue, onChange }) {
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState(dateValue ?? new Date());
   const [month, setMonth] = React.useState(date);
@@ -94,6 +94,9 @@ export function Calendar28({ label, readOnly, dateValue }) {
             onSelect={(date) => {
               setDate(date);
               setValue(formatDate(date));
+              if (typeof onChange == "function") {
+                onChange(date);
+              }
               setOpen(false);
             }}
           />
