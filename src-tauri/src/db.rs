@@ -87,3 +87,36 @@ pub fn get_patients(conn: &Connection) -> Result<Vec<Patient>, String> {
     let patients: Result<Vec<Patient>, _> = patients_iter.collect();
     patients.map_err(|e| format!("Failed to collect patients: {}", e))
 }
+
+pub fn update_patient(patient: Patient, conn: &Connection) -> Result<Patient, String> {
+    patient
+        .validate()
+        .map_err(|e| format!("Patient data validation error: {}", e))?;
+
+    match conn.execute(
+        "UPDATE patients 
+        SET name = ?1, surname = ?2, national_id = ?3, phone = ?4, medicare = ?5, medicare_number = ?6, sex = ?7, gender = ?8, description = ?9 WHERE id = ?10",
+        (
+            &patient.name,
+            &patient.surname,
+            &patient.national_id,
+            &patient.phone,
+            &patient.medicare,
+            &patient.medicare_number,
+            &patient.sex,
+            &patient.gender,
+            &patient.description,
+            patient.id,
+        ),
+    ) {
+        Ok(_) => Ok(patient),
+        Err(rusqlite::Error::SqliteFailure(e, _)) => {
+            if e.extended_code == rusqlite::ffi::SQLITE_CONSTRAINT_UNIQUE {
+                Err("A patient with this National ID already exists.".to_string())
+            } else {
+                Err(format!("A database error occurred while updating the patient: {}", e))
+            }
+        }
+        Err(e) => Err(format!("Failed to update the patient: {}", e)),
+    }
+}

@@ -2,7 +2,7 @@ use crate::custom_types::enums::Sex;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate, Clone)]
 pub struct Patient {
     pub id: i32,
     #[validate(length(min = 1, message = "Name cannot be empty"))]

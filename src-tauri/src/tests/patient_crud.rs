@@ -19,7 +19,7 @@ mod tests {
 
     fn sample_patient() -> Patient {
         Patient {
-            id: 0,
+            id: 1,
             name: "Gregory".to_string(),
             surname: "House".to_string(),
             national_id: "12345678".to_string(),
@@ -29,6 +29,21 @@ mod tests {
             sex: Sex::Male,
             gender: Some("Male".to_string()),
             description: Some("Lupus".to_string()),
+        }
+    }
+
+    fn another_sample_patient() -> Patient {
+        Patient {
+            id: 2,
+            name: "Eric".to_string(),
+            surname: "Foreman".to_string(),
+            national_id: "87654321".to_string(),
+            phone: "123-5555".to_string(),
+            medicare: None,
+            medicare_number: None,
+            sex: Sex::Male,
+            gender: Some("Male".to_string()),
+            description: None,
         }
     }
 
@@ -82,5 +97,45 @@ mod tests {
             .err()
             .unwrap()
             .contains("National ID cannot be empty"));
+    }
+
+    #[test]
+    fn test_update_patient_success() {
+        let conn = setup_test_db();
+        let mut patient = sample_patient();
+
+        save_patient(patient.clone(), &conn).expect("Should save patient");
+        let patients = get_patients(&conn).expect("Should get patients");
+
+        assert_eq!(patients.len(), 1);
+        assert_eq!(patients[0].name, "Gregory");
+        assert_eq!(patients[0].phone, "555-1234");
+
+        patient.name = "Eric".to_string();
+        patient.phone = "987-5432".to_string();
+        update_patient(patient, &conn).expect("Should update patient");
+        let updated_patients = get_patients(&conn).expect("Should get patients");
+
+        assert_eq!(updated_patients.len(), 1);
+        assert_eq!(updated_patients[0].name, "Eric");
+    }
+
+    #[test]
+    fn test_update_patient_failure_for_bad_request() {
+        let conn = setup_test_db();
+        let mut patient = sample_patient();
+        let another_patient = another_sample_patient();
+
+        save_patient(patient.clone(), &conn).expect("Should save patient");
+        save_patient(another_patient.clone(), &conn).expect("Should save patient");
+
+        patient.national_id = another_patient.national_id.clone();
+
+        let result = update_patient(patient, &conn);
+        assert!(result.is_err());
+        assert_eq!(
+            result.err().unwrap(),
+            "A patient with this National ID already exists."
+        );
     }
 }
