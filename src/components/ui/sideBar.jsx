@@ -39,7 +39,7 @@ function SideBar({ setAddPatient }) {
       {/* Patient list */}
       <div className="patient-list flex flex-col h-full min-h-0">
         <h3 className="font-bold text-xl px-5 pb-2 border-b">Pacientes</h3>
-        <div className="patients flex-1 overflow-y-scroll ">
+        <div className="patients flex-1 overflow-y-auto ">
           {search.trim()
             ? patients
                 .filter(
