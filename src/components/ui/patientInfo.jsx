@@ -1,22 +1,26 @@
 import { ArrowDown, ArrowUp, FileText } from "lucide-react";
 import { Button } from "./button";
 import { Separator } from "./separator";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import Visita from "./visita";
+import PatientForm from "../patientForm";
+import { invoke } from "@tauri-apps/api/core";
+import { PatientsContext } from "@/context/patientsContext";
 
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
   const refs = useRef([]);
   const [toAdd, setToAdd] = useState({});
   const [visitas, setVisitas] = useState([]);
+  const [dialogContent, setDialogContent] = useState("add");
+  const { setPatients, setSelected } = useContext(PatientsContext);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     refs.current[showing]?.scrollIntoView({
@@ -26,27 +30,68 @@ function PatientInfo({ selected }) {
   }, [showing]);
 
   return (
-    <Dialog>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Agregar Visita</DialogTitle>
-        </DialogHeader>
+    <Dialog open={isDialogOpen}>
+      <DialogContent
+        showCloseButton={false}
+        onInteractOutside={() => setIsDialogOpen(false)}
+      >
+        {dialogContent === "add" ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Agregar Visita</DialogTitle>
+            </DialogHeader>
 
-        <Separator />
-        <Visita onChange={(e) => setToAdd(e)} />
-        <Separator />
+            <Separator />
+            <Visita
+              onChange={(e) => {
+                console.log(e);
+                setToAdd(e);
+              }}
+            />
+            <Separator />
 
-        <div className="flex gap-2 justify-self-end">
-          <Button asChild variant={"outline"}>
-            <DialogClose>Cancelar</DialogClose>
-          </Button>
-          <Button
-            asChild
-            onClick={() => setVisitas((prev) => [toAdd, ...prev])}
-          >
-            <DialogClose>Agregar</DialogClose>
-          </Button>
-        </div>
+            <div className="flex gap-2 justify-self-end">
+              <Button
+                onClick={() => setIsDialogOpen(false)}
+                variant={"outline"}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  setToAdd({});
+                  setVisitas((prev) => [toAdd, ...prev]);
+                  setIsDialogOpen(false);
+                }}
+              >
+                Agregar
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Editar Paciente</DialogTitle>
+            </DialogHeader>
+
+            <Separator />
+            <PatientForm
+              header="Editar Paciente"
+              confirmLabel="Guardar Cambios"
+              value={selected}
+              callback={async (form) => {
+                await invoke("update_patient_comm", {
+                  patient: form,
+                });
+                setSelected(form);
+                setPatients((prev) =>
+                  prev.map((p, i) => (form.id === p.id ? form : p))
+                );
+                setIsDialogOpen(false);
+              }}
+            />
+          </>
+        )}
       </DialogContent>
 
       <div className=" flex flex-col h-full">
@@ -57,7 +102,13 @@ function PatientInfo({ selected }) {
             {selected?.national_id}
           </span>
 
-          <Button className="cursor-pointer" onClick={() => console.log(refs)}>
+          <Button
+            className="cursor-pointer"
+            onClick={() => {
+              setDialogContent("edit");
+              setIsDialogOpen(true);
+            }}
+          >
             Editar
           </Button>
         </div>
@@ -69,8 +120,13 @@ function PatientInfo({ selected }) {
             <FileText /> Historial de Visitas ({visitas.length})
           </span>
 
-          <Button asChild>
-            <DialogTrigger>Agregar Visita</DialogTrigger>
+          <Button
+            onClick={() => {
+              setDialogContent("add");
+              setIsDialogOpen(true);
+            }}
+          >
+            Agregar Visita
           </Button>
         </div>
 
