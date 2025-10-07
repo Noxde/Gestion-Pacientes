@@ -50,6 +50,7 @@ function SideBar({ setAddPatient }) {
                 )
                 .map((p, i) => (
                   <PatientItem
+                    key={p.id}
                     patient={p}
                     className={
                       selected?.national_id === p.national_id
@@ -64,6 +65,7 @@ function SideBar({ setAddPatient }) {
                 ))
             : patients.map((p, i) => (
                 <PatientItem
+                  key={p.id}
                   patient={p}
                   className={
                     selected?.national_id === p.national_id ? "bg-blue-50" : ""
