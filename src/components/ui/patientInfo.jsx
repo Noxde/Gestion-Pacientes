@@ -1,4 +1,10 @@
-import { ArrowDown, ArrowUp, FileText } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ClipboardList,
+  FileText,
+  Folder,
+} from "lucide-react";
 import { Button } from "./button";
 import { Separator } from "./separator";
 import { useEffect, useState, useRef, useContext } from "react";
@@ -104,6 +110,7 @@ function PatientInfo({ selected }) {
 
           <Button
             className="cursor-pointer"
+            variant="outline"
             onClick={() => {
               setDialogContent("edit");
               setIsDialogOpen(true);
@@ -117,22 +124,49 @@ function PatientInfo({ selected }) {
         {/* Visits */}
         <div className="flex items-center justify-between mb-5">
           <span className="flex items-center gap-2 text-xl">
-            <FileText /> Historial de Visitas ({visitas.length})
+            <ClipboardList className="text-text-primary" /> Historial de Visitas
+            ({visitas.length})
           </span>
 
-          <Button
-            onClick={() => {
-              setDialogContent("add");
-              setIsDialogOpen(true);
-            }}
-          >
-            Agregar Visita
-          </Button>
+          {/* Only show this button when there are visits already */}
+          {visitas.length ? (
+            <Button
+              onClick={() => {
+                setDialogContent("add");
+                setIsDialogOpen(true);
+              }}
+            >
+              Agregar Visita
+            </Button>
+          ) : null}
         </div>
 
         {/* scroll */}
         <div className="h-full grid grid-cols-[1fr_50px] min-h-0 relative rounded-md border">
           <div className="flex flex-col px-20 overflow-auto">
+            {/* Show when there are no visits */}
+            {!visitas.length ? (
+              <div className="h-full flex justify-center items-center">
+                <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full">
+                  <ClipboardList className="w-12 h-12 mb-3 text-blue-400" />
+                  <p className="text-lg font-medium text-text-primary">
+                    No hay visitas registradas
+                  </p>
+                  <p className="text-sm mb-4">
+                    Hace click en "Agregar Visita" para añadir la primera
+                    consulta.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setDialogContent("add");
+                      setIsDialogOpen(true);
+                    }}
+                  >
+                    Agregar Visita
+                  </Button>
+                </div>
+              </div>
+            ) : null}
             {visitas.map((x, i, arr) => (
               <>
                 <Visita
