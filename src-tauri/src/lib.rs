@@ -1,5 +1,8 @@
 use crate::custom_types::structs::Patient;
-use crate::db::{get_patients, init_db, save_patient, update_patient};
+use crate::db::{
+    common::init_db,
+    patient
+};
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
 use tauri::{Manager, State};
@@ -48,19 +51,19 @@ fn init_db_comm(app: tauri::AppHandle, state: State<DbConn>) -> Result<(), Strin
 fn save_patient_comm(state: State<DbConn>, new_patient: Patient) -> Result<Patient, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    save_patient(new_patient, conn_ref)
+    patient::save(new_patient, conn_ref)
 }
 
 #[tauri::command]
 fn get_patients_comm(state: State<DbConn>) -> Result<Vec<Patient>, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    get_patients(conn_ref)
+    patient::get_all(conn_ref)
 }
 
 #[tauri::command]
 fn update_patient_comm(state: State<DbConn>, patient: Patient) -> Result<Patient, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    update_patient(patient, conn_ref)
+    patient::update(patient, conn_ref)
 }
