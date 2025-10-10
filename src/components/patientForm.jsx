@@ -179,7 +179,7 @@ function PatientForm({ value, callback, confirmLabel }) {
         </div>
 
         <div>
-          <Label className="block text-md">
+          <Label className="block text-md text-text-secondary">
             Sexo
             <Select
               value={form.sex}
@@ -223,7 +223,7 @@ function PatientForm({ value, callback, confirmLabel }) {
       <Separator className="my-7" />
 
       <div className="self-end">
-        <Button className="font-bold">{confirmLabel}</Button>
+        <Button>{confirmLabel}</Button>
       </div>
     </form>
   );
