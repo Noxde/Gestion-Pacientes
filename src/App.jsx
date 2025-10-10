@@ -6,6 +6,7 @@ import SideBar from "@/components/ui/sideBar";
 import PatientInfo from "./components/ui/patientInfo";
 import AddPatient from "./components/ui/addPatient";
 import { PatientsContext } from "./context/patientsContext";
+import { UserSearch } from "lucide-react";
 
 function App() {
   const { selected, setPatients, patients } = useContext(PatientsContext);
@@ -40,11 +41,22 @@ function App() {
       <SideBar setAddPatient={setAddPatient} />
       <div className="h-full p-5 min-h-0">
         <div className="border bg-white rounded-md overflow-hidden h-full p-5">
-          {!patients.length && !addPatient && (
-            <div>No tenes pacientes registrados</div>
-          )}
-          {!selected && !addPatient && patients.length ? (
-            <div>Selecciona un paciente para gestionar sus visitas aca</div>
+          {/* {!patients.length && !addPatient && (
+            <div className="h-full flex flex-col justify-center items-center">
+              No hay pacientes registrados
+            </div>
+          )} */}
+          {!selected && !addPatient ? (
+            <div className="h-full flex flex-col items-center justify-center">
+              <UserSearch size="50px" className="text-text-secondary" />
+              <p className="text-text-primary font-medium text-lg">
+                Seleccione un paciente
+              </p>
+              <p className="text-text-secondary max-w-md text-center">
+                Seleccione un paciente de la lista para ver sus detalles o
+                agregue un paciente nuevo haciendo click en "Agregar Paciente"
+              </p>
+            </div>
           ) : null}
           {selected && !addPatient ? <PatientInfo selected={selected} /> : null}
           {addPatient && !selected ? (
