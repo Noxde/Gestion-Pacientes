@@ -48,28 +48,24 @@ function SideBar({ setAddPatient }) {
                     x.surname.toLowerCase().includes(search) ||
                     x.national_id.includes(search)
                 )
-                .map((p, i) => (
-                  <PatientItem
-                    key={p.id}
-                    patient={p}
-                    className={
-                      selected?.national_id === p.national_id
-                        ? "bg-blue-50"
-                        : ""
-                    }
-                    onClick={() => {
-                      setSelected(p);
-                      setAddPatient(false);
-                    }}
-                  />
-                ))
+                .map((p, i) => {
+                  return (
+                    <PatientItem
+                      key={p.id}
+                      patient={p}
+                      selected={selected?.national_id === p.national_id}
+                      onClick={() => {
+                        setSelected(p);
+                        setAddPatient(false);
+                      }}
+                    />
+                  );
+                })
             : patients.map((p, i) => (
                 <PatientItem
                   key={p.id}
                   patient={p}
-                  className={
-                    selected?.national_id === p.national_id ? "bg-blue-50" : ""
-                  }
+                  selected={selected?.national_id === p.national_id}
                   onClick={() => {
                     setSelected(p);
                     setAddPatient(false);

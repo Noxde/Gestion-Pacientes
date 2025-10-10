@@ -1,19 +1,17 @@
-import { cn } from "@/lib/utils";
 import React from "react";
 
-function PatientItem({ patient, onClick, className }) {
+function PatientItem({ patient, onClick, selected }) {
   return (
     <div
       onClick={onClick}
-      className={cn(
-        "flex flex-col hover:bg-blue-50 px-5 py-1 cursor-pointer",
-        className
-      )}
+      className={`flex flex-col hover:bg-blue-50 px-5 py-1 cursor-pointer ${
+        selected ? "bg-[#dbeafe] border-l-5 border-[#607afb]" : ""
+      }`}
     >
-      <span className="font-bold">
+      <span className={`font-bold ${selected ? "text-[#607afb]" : ""}`}>
         {patient.name} {patient.surname}
       </span>
-      <span>DNI {patient.national_id}</span>
+      <span className="text-text-secondary">DNI {patient.national_id}</span>
     </div>
   );
 }
