@@ -3,6 +3,7 @@ use crate::custom_types::structs::*;
 use crate::db::patient;
 use rusqlite::Connection;
 use std::{fs, path::PathBuf};
+use serial_test::serial;
 
 fn setup_test_db() -> Connection {
     let db_path = PathBuf::from("src/tests/test_db.sqlite");
@@ -46,6 +47,7 @@ fn another_sample_patient() -> Patient {
 }
 
 #[test]
+#[serial]
 fn test_save_patient_success() {
     let conn = setup_test_db();
     let patient = sample_patient();
@@ -60,6 +62,7 @@ fn test_save_patient_success() {
 }
 
 #[test]
+#[serial]
 fn test_save_patient_failure_for_existing_national_id() {
     let conn = setup_test_db();
     let patient = sample_patient();
@@ -76,6 +79,7 @@ fn test_save_patient_failure_for_existing_national_id() {
 }
 
 #[test]
+#[serial]
 fn test_get_patients_empty() {
     let conn = setup_test_db();
 
@@ -84,6 +88,7 @@ fn test_get_patients_empty() {
 }
 
 #[test]
+#[serial]
 fn test_save_patient_failure_for_bad_request() {
     let conn = setup_test_db();
     let mut bad_patient = sample_patient();
@@ -98,6 +103,7 @@ fn test_save_patient_failure_for_bad_request() {
 }
 
 #[test]
+#[serial]
 fn test_update_patient_success() {
     let conn = setup_test_db();
     let mut patient = sample_patient();
@@ -119,6 +125,7 @@ fn test_update_patient_success() {
 }
 
 #[test]
+#[serial]
 fn test_update_patient_failure_for_bad_request() {
     let conn = setup_test_db();
     let mut patient = sample_patient();

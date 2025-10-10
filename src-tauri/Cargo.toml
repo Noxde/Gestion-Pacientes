@@ -28,3 +28,4 @@ validator = { version = "0.20.0", features = ["derive"] }
 # version of SQLite for you. This avoids many common build issues, and
 # avoids depending on the version of SQLite on the users system
 rusqlite = { version = "0.37.0", features = ["bundled"] }
+serial_test = "3.2.0"
