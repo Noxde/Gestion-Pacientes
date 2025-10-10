@@ -1,2 +1,4 @@
 #[cfg(test)]
-pub mod patient_crud;
+pub mod patient;
+#[cfg(test)]
+pub mod event;

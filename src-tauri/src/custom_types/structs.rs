@@ -1,6 +1,7 @@
 use crate::custom_types::enums::Sex;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
+use chrono::NaiveDateTime;
 
 #[derive(Serialize, Deserialize, Debug, Validate, Clone)]
 pub struct Patient {
@@ -18,4 +19,13 @@ pub struct Patient {
     pub sex: Sex,
     pub gender: Option<String>,
     pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Validate, Clone)]
+pub struct Event {
+    pub id: i32,
+    #[validate(length(min = 1, message = "Title cannot be empty"))]
+    pub title: String,
+    pub description: Option<String>,
+    pub datetime: Option<NaiveDateTime>,
 }

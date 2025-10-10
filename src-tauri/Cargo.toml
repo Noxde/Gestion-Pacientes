@@ -27,5 +27,6 @@ validator = { version = "0.20.0", features = ["derive"] }
 # `bundled` causes us to automatically compile and link in an up to date
 # version of SQLite for you. This avoids many common build issues, and
 # avoids depending on the version of SQLite on the users system
-rusqlite = { version = "0.37.0", features = ["bundled"] }
+rusqlite = { version = "0.37.0", features = ["bundled", "chrono"] }
 serial_test = "3.2.0"
+chrono = { version = "0.4", features = ["serde"] }

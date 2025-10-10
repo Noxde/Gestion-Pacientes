@@ -1,7 +1,11 @@
-use crate::custom_types::structs::Patient;
+use crate::custom_types::structs::{
+    Patient,
+    Event
+};
 use crate::db::{
     common::init_db,
-    patient
+    patient,
+    event
 };
 use rusqlite::{Connection, Result};
 use std::sync::Mutex;
@@ -66,4 +70,25 @@ fn update_patient_comm(state: State<DbConn>, patient: Patient) -> Result<Patient
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
     patient::update(patient, conn_ref)
+}
+
+#[tauri::command]
+fn save_event_comm(state: State<DbConn>, new_event: Event) -> Result<Event, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    event::save(new_event, conn_ref)
+}
+
+#[tauri::command]
+fn get_events_comm(state: State<DbConn>) -> Result<Vec<Event>, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    event::get_all(conn_ref)
+}
+
+#[tauri::command]
+fn update_event_comm(state: State<DbConn>, event: Event) -> Result<Event, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    event::update(event, conn_ref)
 }
