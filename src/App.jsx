@@ -58,7 +58,9 @@ function App() {
               </p>
             </div>
           ) : null}
-          {selected && !addPatient ? <PatientInfo selected={selected} /> : null}
+          {selected && !addPatient ? (
+            <PatientInfo key={selected.id} selected={selected} />
+          ) : null}
           {addPatient && !selected ? (
             <AddPatient setAddPatient={setAddPatient} />
           ) : null}
