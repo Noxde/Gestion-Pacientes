@@ -164,17 +164,14 @@ function PatientInfo({ selected }) {
             ({visitas.length})
           </span>
 
-          {/* Only show this button when there are visits already */}
-          {visitas.length ? (
-            <Button
-              onClick={() => {
-                setDialogContent("add");
-                setIsDialogOpen(true);
-              }}
-            >
-              Agregar Visita
-            </Button>
-          ) : null}
+          <Button
+            onClick={() => {
+              setDialogContent("add");
+              setIsDialogOpen(true);
+            }}
+          >
+            Agregar Visita
+          </Button>
         </div>
 
         {/* scroll */}
@@ -192,14 +189,6 @@ function PatientInfo({ selected }) {
                     Hace click en "Agregar Visita" para añadir la primera
                     consulta.
                   </p>
-                  <Button
-                    onClick={() => {
-                      setDialogContent("add");
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    Agregar Visita
-                  </Button>
                 </div>
               </div>
             ) : null}
