@@ -2,7 +2,8 @@ use crate::custom_types::structs::Event;
 use rusqlite::{Connection, Result};
 use validator::Validate;
 
-pub fn save(mut new_event: Event, conn: &Connection) -> Result<Event, String> {
+//Save a new event in the db
+pub fn save(mut new_event: Event, patient_id: i32, conn: &Connection) -> Result<Event, String> {
     new_event
         .validate()
         .map_err(|e| format!("Event data validation error: {}", e))?;
@@ -10,17 +11,17 @@ pub fn save(mut new_event: Event, conn: &Connection) -> Result<Event, String> {
     // Build query dynamically depending on datetime
     let result = if let Some(datetime) = new_event.datetime {
         conn.query_one(
-            "INSERT INTO events (title, description, datetime)
-             VALUES (?1, ?2, ?3) RETURNING id",
-            (&new_event.title, &new_event.description, &datetime),
+            "INSERT INTO events (patient_id, title, description, datetime)
+             VALUES (?1, ?2, ?3, ?4) RETURNING id",
+            (&patient_id, &new_event.title, &new_event.description, &datetime),
             |row| row.get(0),
         )
     } else {
         // Let SQLite use DEFAULT CURRENT_TIMESTAMP
         conn.query_one(
-            "INSERT INTO events (title, description)
-             VALUES (?1, ?2) RETURNING id",
-            (&new_event.title, &new_event.description),
+            "INSERT INTO events (patient_id, title, description)
+             VALUES (?1, ?2, ?3) RETURNING id",
+            (&patient_id, &new_event.title, &new_event.description),
             |row| row.get(0),
         )
     };
@@ -30,21 +31,27 @@ pub fn save(mut new_event: Event, conn: &Connection) -> Result<Event, String> {
             new_event.id = id;
             Ok(new_event)
         }
+        Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::ConstraintViolation => {
+            Err("Invalid patient_id: referenced patient does not exist".to_string())
+        },
         Err(rusqlite::Error::SqliteFailure(e, _)) => {
             Err(format!("A database error occurred while saving the event: {}", e))
         }
         Err(e) => Err(format!("Failed to save the new event: {}", e)),
-    }}
+    }
+}
 
-pub fn get_all(conn: &Connection) -> Result<Vec<Event>, String> {
+///Get all events of a patient
+pub fn get_all(patient_id: i32, conn: &Connection) -> Result<Vec<Event>, String> {
     let mut stmt = conn
-        .prepare("SELECT * FROM events")
+        .prepare("SELECT * FROM events WHERE patient_id = ?1")
         .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
     let events_iter = stmt
-        .query_map([], |row| {
+        .query_map([&patient_id], |row| {
             Ok(Event {
                 id: row.get("id")?,
+                patient_id: row.get("patient_id")?,
                 title: row.get("title")?,
                 description: row.get("description")?,
                 datetime: row.get("datetime")?,
@@ -55,6 +62,8 @@ pub fn get_all(conn: &Connection) -> Result<Vec<Event>, String> {
     let events: Result<Vec<Event>, _> = events_iter.collect();
     events.map_err(|e| format!("Failed to collect events: {}", e))
 }
+
+///Update an event, does not modify any id
 pub fn update(event: Event, conn: &Connection) -> Result<Event, String> {
     event
         .validate()

@@ -16,7 +16,7 @@ fn setup_test_db() -> Connection {
     conn
 }
 
-fn sample_patient() -> Patient {
+pub fn sample_patient() -> Patient {
     Patient {
         id: 1,
         name: "Gregory".to_string(),
@@ -31,7 +31,7 @@ fn sample_patient() -> Patient {
     }
 }
 
-fn another_sample_patient() -> Patient {
+pub fn another_sample_patient() -> Patient {
     Patient {
         id: 2,
         name: "Eric".to_string(),

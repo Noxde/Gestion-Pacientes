@@ -73,17 +73,17 @@ fn update_patient_comm(state: State<DbConn>, patient: Patient) -> Result<Patient
 }
 
 #[tauri::command]
-fn save_event_comm(state: State<DbConn>, new_event: Event) -> Result<Event, String> {
+fn save_event_comm(state: State<DbConn>, new_event: Event, patient_id: i32) -> Result<Event, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    event::save(new_event, conn_ref)
+    event::save(new_event, patient_id, conn_ref)
 }
 
 #[tauri::command]
-fn get_events_comm(state: State<DbConn>) -> Result<Vec<Event>, String> {
+fn get_events_comm(patient_id: i32, state: State<DbConn>) -> Result<Vec<Event>, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    event::get_all(conn_ref)
+    event::get_all(patient_id, conn_ref)
 }
 
 #[tauri::command]

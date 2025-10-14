@@ -15,6 +15,7 @@ BEGIN;
 
     CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE ON UPDATE CASCADE,
         title varchar(256) NOT NULL,
         description TEXT,
         datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
