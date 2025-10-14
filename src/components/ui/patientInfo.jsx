@@ -35,6 +35,28 @@ function PatientInfo({ selected }) {
     });
   }, [showing]);
 
+  // Get visits on mount
+  useEffect(() => {
+    invoke("get_events_comm", {
+      patientId: selected.id,
+    })
+      .then((r) => {
+        setVisitas(
+          r.map((x) => ({
+            fecha: new Date(x.datetime),
+            motivo: x.title,
+            diagnostico: x.description,
+            tratamiento: "",
+            notas: "",
+          }))
+        );
+      })
+      .catch((err) => {
+        // No visits
+        console.error(err);
+      });
+  }, []);
+
   return (
     <Dialog open={isDialogOpen}>
       <DialogContent
@@ -64,10 +86,24 @@ function PatientInfo({ selected }) {
                 Cancelar
               </Button>
               <Button
-                onClick={() => {
+                onClick={async () => {
                   setToAdd({});
-                  setVisitas((prev) => [toAdd, ...prev]);
-                  setIsDialogOpen(false);
+                  try {
+                    await invoke("save_event_comm", {
+                      newEvent: {
+                        id: 1,
+                        patient_id: selected.id,
+                        title: toAdd.motivo,
+                        description: toAdd.diagnostico,
+                        datetime: toAdd.fecha?.toJSON().replace("Z", ""),
+                      },
+                      patientId: selected.id,
+                    });
+                    setVisitas((prev) => [toAdd, ...prev]);
+                    setIsDialogOpen(false);
+                  } catch (err) {
+                    console.error(err);
+                  }
                 }}
               >
                 Agregar
