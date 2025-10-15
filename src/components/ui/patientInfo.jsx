@@ -87,19 +87,24 @@ function PatientInfo({ selected }) {
               </Button>
               <Button
                 onClick={async () => {
-                  setToAdd({});
                   try {
-                    await invoke("save_event_comm", {
+                    const res = await invoke("save_event_comm", {
                       newEvent: {
                         id: 1,
                         patient_id: selected.id,
                         title: toAdd.motivo,
                         description: toAdd.diagnostico,
-                        datetime: toAdd.fecha?.toJSON().replace("Z", ""),
+                        datetime: new Date(
+                          toAdd.fecha.getTime() -
+                            toAdd.fecha.getTimezoneOffset() * 60000 // Fix for UTC date
+                        )
+                          .toJSON()
+                          .replace("Z", ""),
                       },
                       patientId: selected.id,
                     });
-                    setVisitas((prev) => [toAdd, ...prev]);
+                    setVisitas((prev) => [{ ...toAdd, id: res.id }, ...prev]);
+                    setToAdd({});
                     setIsDialogOpen(false);
                   } catch (err) {
                     console.error(err);
