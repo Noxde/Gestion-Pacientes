@@ -201,6 +201,7 @@ function PatientInfo({ selected }) {
               <>
                 <Visita
                   readOnly
+                  key={x.id}
                   className="py-5"
                   visita={x}
                   ref={(el) => (refs.current[i] = el)}
