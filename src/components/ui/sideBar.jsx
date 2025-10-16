@@ -21,7 +21,7 @@ function SideBar({ setAddPatient }) {
             placeholder="Buscar"
             type="text"
             className=" bg-transparent border-0 p-0 shadow-none focus-visible:ring-0"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value.toLowerCase())}
           />
         </div>
         <Button
