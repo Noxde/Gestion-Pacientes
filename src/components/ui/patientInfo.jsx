@@ -1,10 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ClipboardList,
-  FileText,
-  Folder,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ClipboardList } from "lucide-react";
 import { Button } from "./button";
 import { Separator } from "./separator";
 import { useEffect, useState, useRef, useContext } from "react";
@@ -18,6 +12,7 @@ import Visita from "./visita";
 import PatientForm from "../patientForm";
 import { invoke } from "@tauri-apps/api/core";
 import { PatientsContext } from "@/context/patientsContext";
+import VisitSkeleton from "./visitSkeleton";
 
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
@@ -27,6 +22,7 @@ function PatientInfo({ selected }) {
   const [dialogContent, setDialogContent] = useState("add");
   const { setPatients, setSelected } = useContext(PatientsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     refs.current[showing]?.scrollIntoView({
@@ -54,6 +50,9 @@ function PatientInfo({ selected }) {
       .catch((err) => {
         // No visits
         console.error(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -183,7 +182,7 @@ function PatientInfo({ selected }) {
         <div className="h-full grid grid-cols-[1fr_50px] min-h-0 relative rounded-md border">
           <div className="flex flex-col px-20 overflow-auto">
             {/* Show when there are no visits */}
-            {!visitas.length ? (
+            {!visitas.length && !isLoading ? (
               <div className="h-full flex justify-center items-center">
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full">
                   <ClipboardList className="w-12 h-12 mb-3 text-blue-400" />
@@ -197,18 +196,23 @@ function PatientInfo({ selected }) {
                 </div>
               </div>
             ) : null}
-            {visitas.map((x, i, arr) => (
-              <>
-                <Visita
-                  readOnly
-                  key={x.id}
-                  className="py-5"
-                  visita={x}
-                  ref={(el) => (refs.current[i] = el)}
-                />
-                {i < arr.length - 1 ? <Separator /> : null}
-              </>
-            ))}
+
+            {isLoading ? (
+              <VisitSkeleton />
+            ) : (
+              visitas.map((x, i, arr) => (
+                <>
+                  <Visita
+                    readOnly
+                    key={x.id}
+                    className="py-5"
+                    visita={x}
+                    ref={(el) => (refs.current[i] = el)}
+                  />
+                  {i < arr.length - 1 ? <Separator /> : null}
+                </>
+              ))
+            )}
           </div>
 
           <div className="self-center flex flex-col gap-1">
