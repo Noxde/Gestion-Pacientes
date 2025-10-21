@@ -13,11 +13,14 @@ BEGIN;
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS events (
+    CREATE TABLE IF NOT EXISTS visits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE ON UPDATE CASCADE,
         title varchar(256) NOT NULL,
-        description TEXT,
+        reason TEXT,
+        diagnosis TEXT,
+        treatment TEXT,
+        notes TEXT,
         datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 

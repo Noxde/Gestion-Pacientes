@@ -22,11 +22,15 @@ pub struct Patient {
 }
 
 #[derive(Serialize, Deserialize, Debug, Validate, Clone)]
-pub struct Event {
+pub struct Visit {
     pub id: i32,
     pub patient_id: i32,
     #[validate(length(min = 1, message = "Title cannot be empty"))]
     pub title: String,
-    pub description: Option<String>,
+    pub reason: Option<String>,
+    pub diagnosis: Option<String>,
+    pub treatment: Option<String>,
+    pub notes: Option<String>,
+    pub files: Vec<String>,
     pub datetime: Option<NaiveDateTime>,
 }
