@@ -9,13 +9,15 @@ const Visita = forwardRef(function (
   { className, readOnly, visita, onChange },
   ref
 ) {
-  const [visit, setVisit] = useState({
-    fecha: new Date(),
-    motivo: "",
-    diagnostico: "",
-    tratamiento: "",
-    notas: "",
-  });
+  const [visit, setVisit] = useState(
+    visita ?? {
+      fecha: new Date(),
+      motivo: "",
+      diagnostico: "",
+      tratamiento: "",
+      notas: "",
+    }
+  );
 
   useEffect(() => {
     if (typeof onChange == "function") {
@@ -24,11 +26,17 @@ const Visita = forwardRef(function (
   }, [visit]);
 
   return (
-    <div ref={ref} className={cn("flex flex-col gap-2", className)}>
+    <div
+      ref={ref}
+      className={cn(
+        `flex flex-col gap-2 ${visita ? "pointer-events-none" : ""}`,
+        className
+      )}
+    >
       <div className="flex gap-5 justify-stretch">
         <Calendar28
           onChange={(e) => setVisit((prev) => ({ ...prev, fecha: e }))}
-          dateValue={visita?.fecha}
+          dateValue={visit?.fecha}
           readOnly={readOnly}
           label={"Fecha de Consulta"}
         />
@@ -37,7 +45,7 @@ const Visita = forwardRef(function (
             setVisit((prev) => ({ ...prev, motivo: e.target.value }))
           }
           label={"Motivo de Consulta"}
-          value={visita?.motivo}
+          value={visit?.motivo}
           readOnly={readOnly}
         />
       </div>
@@ -45,7 +53,7 @@ const Visita = forwardRef(function (
         onChange={(e) =>
           setVisit((prev) => ({ ...prev, diagnostico: e.target.value }))
         }
-        value={visita?.diagnostico}
+        value={visit?.diagnostico}
         readOnly={readOnly}
         label={"Diagnostico"}
       />
@@ -53,6 +61,7 @@ const Visita = forwardRef(function (
         onChange={(e) =>
           setVisit((prev) => ({ ...prev, tratamiento: e.target.value }))
         }
+        value={visit?.tratamiento}
         readOnly={readOnly}
         label={"Tratamiento"}
       />
@@ -61,6 +70,7 @@ const Visita = forwardRef(function (
           setVisit((prev) => ({ ...prev, notas: e.target.value }))
         }
         readOnly={readOnly}
+        value={visit?.notas}
         label={"Notas Adicionales"}
         placeholder="Observaciones, recomendaciones, proximas citas"
       />

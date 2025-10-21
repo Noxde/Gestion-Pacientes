@@ -31,6 +31,9 @@ pub fn run() {
             save_patient_comm,
             get_patients_comm,
             update_patient_comm,
+            save_visit_comm,
+            get_visits_comm,
+            update_visit_comm
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

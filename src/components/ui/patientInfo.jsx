@@ -1,10 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ClipboardList,
-  FileText,
-  Folder,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ClipboardList } from "lucide-react";
 import { Button } from "./button";
 import { Separator } from "./separator";
 import { useEffect, useState, useRef, useContext } from "react";
@@ -18,6 +12,7 @@ import Visita from "./visita";
 import PatientForm from "../patientForm";
 import { invoke } from "@tauri-apps/api/core";
 import { PatientsContext } from "@/context/patientsContext";
+import VisitSkeleton from "./visitSkeleton";
 
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
@@ -27,6 +22,7 @@ function PatientInfo({ selected }) {
   const [dialogContent, setDialogContent] = useState("add");
   const { setPatients, setSelected } = useContext(PatientsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     refs.current[showing]?.scrollIntoView({
@@ -34,6 +30,31 @@ function PatientInfo({ selected }) {
       scrollMarginTop: "20px",
     });
   }, [showing]);
+
+  // Get visits on mount
+  useEffect(() => {
+    invoke("get_events_comm", {
+      patientId: selected.id,
+    })
+      .then((r) => {
+        setVisitas(
+          r.map((x) => ({
+            fecha: new Date(x.datetime),
+            motivo: x.title,
+            diagnostico: x.description,
+            tratamiento: "",
+            notas: "",
+          }))
+        );
+      })
+      .catch((err) => {
+        // No visits
+        console.error(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
 
   return (
     <Dialog open={isDialogOpen}>
@@ -64,10 +85,29 @@ function PatientInfo({ selected }) {
                 Cancelar
               </Button>
               <Button
-                onClick={() => {
-                  setToAdd({});
-                  setVisitas((prev) => [toAdd, ...prev]);
-                  setIsDialogOpen(false);
+                onClick={async () => {
+                  try {
+                    const res = await invoke("save_event_comm", {
+                      newEvent: {
+                        id: 1,
+                        patient_id: selected.id,
+                        title: toAdd.motivo,
+                        description: toAdd.diagnostico,
+                        datetime: new Date(
+                          toAdd.fecha.getTime() -
+                            toAdd.fecha.getTimezoneOffset() * 60000 // Fix for UTC date
+                        )
+                          .toJSON()
+                          .replace("Z", ""),
+                      },
+                      patientId: selected.id,
+                    });
+                    setVisitas((prev) => [{ ...toAdd, id: res.id }, ...prev]);
+                    setToAdd({});
+                    setIsDialogOpen(false);
+                  } catch (err) {
+                    console.error(err);
+                  }
                 }}
               >
                 Agregar
@@ -128,24 +168,21 @@ function PatientInfo({ selected }) {
             ({visitas.length})
           </span>
 
-          {/* Only show this button when there are visits already */}
-          {visitas.length ? (
-            <Button
-              onClick={() => {
-                setDialogContent("add");
-                setIsDialogOpen(true);
-              }}
-            >
-              Agregar Visita
-            </Button>
-          ) : null}
+          <Button
+            onClick={() => {
+              setDialogContent("add");
+              setIsDialogOpen(true);
+            }}
+          >
+            Agregar Visita
+          </Button>
         </div>
 
         {/* scroll */}
         <div className="h-full grid grid-cols-[1fr_50px] min-h-0 relative rounded-md border">
           <div className="flex flex-col px-20 overflow-auto">
             {/* Show when there are no visits */}
-            {!visitas.length ? (
+            {!visitas.length && !isLoading ? (
               <div className="h-full flex justify-center items-center">
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full">
                   <ClipboardList className="w-12 h-12 mb-3 text-blue-400" />
@@ -156,28 +193,26 @@ function PatientInfo({ selected }) {
                     Hace click en "Agregar Visita" para añadir la primera
                     consulta.
                   </p>
-                  <Button
-                    onClick={() => {
-                      setDialogContent("add");
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    Agregar Visita
-                  </Button>
                 </div>
               </div>
             ) : null}
-            {visitas.map((x, i, arr) => (
-              <>
-                <Visita
-                  readOnly
-                  className="py-5"
-                  visita={x}
-                  ref={(el) => (refs.current[i] = el)}
-                />
-                {i < arr.length - 1 ? <Separator /> : null}
-              </>
-            ))}
+
+            {isLoading ? (
+              <VisitSkeleton />
+            ) : (
+              visitas.map((x, i, arr) => (
+                <>
+                  <Visita
+                    readOnly
+                    key={x.id}
+                    className="py-5"
+                    visita={x}
+                    ref={(el) => (refs.current[i] = el)}
+                  />
+                  {i < arr.length - 1 ? <Separator /> : null}
+                </>
+              ))
+            )}
           </div>
 
           <div className="self-center flex flex-col gap-1">

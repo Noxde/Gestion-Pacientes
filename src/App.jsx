@@ -41,11 +41,6 @@ function App() {
       <SideBar setAddPatient={setAddPatient} />
       <div className="h-full p-5 min-h-0">
         <div className="border bg-white rounded-md overflow-hidden h-full p-5">
-          {/* {!patients.length && !addPatient && (
-            <div className="h-full flex flex-col justify-center items-center">
-              No hay pacientes registrados
-            </div>
-          )} */}
           {!selected && !addPatient ? (
             <div className="h-full flex flex-col items-center justify-center">
               <UserSearch size="50px" className="text-text-secondary" />
@@ -58,7 +53,9 @@ function App() {
               </p>
             </div>
           ) : null}
-          {selected && !addPatient ? <PatientInfo selected={selected} /> : null}
+          {selected && !addPatient ? (
+            <PatientInfo key={selected.id} selected={selected} />
+          ) : null}
           {addPatient && !selected ? (
             <AddPatient setAddPatient={setAddPatient} />
           ) : null}

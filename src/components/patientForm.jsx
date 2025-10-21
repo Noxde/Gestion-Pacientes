@@ -190,7 +190,9 @@ function PatientForm({ value, callback, confirmLabel }) {
               }}
             >
               <SelectTrigger
-                className={`w-full ${errors?.sex && "ring ring-[#d1242f]"}`}
+                className={`w-full text-text-primary ${
+                  errors?.sex && "ring ring-[#d1242f]"
+                }`}
               >
                 <SelectValue placeholder="Selecciona el sexo" />
               </SelectTrigger>

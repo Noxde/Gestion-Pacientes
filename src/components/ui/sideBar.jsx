@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import PatientItem from "@/components/ui/patientItem";
 import { useContext, useState } from "react";
 import { PatientsContext } from "@/context/patientsContext";
+import { Virtuoso } from "react-virtuoso";
 
 function SideBar({ setAddPatient }) {
   const { patients, setSelected, selected } = useContext(PatientsContext);
@@ -21,7 +22,7 @@ function SideBar({ setAddPatient }) {
             placeholder="Buscar"
             type="text"
             className=" bg-transparent border-0 p-0 shadow-none focus-visible:ring-0"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value.toLowerCase())}
           />
         </div>
         <Button
@@ -39,40 +40,30 @@ function SideBar({ setAddPatient }) {
       {/* Patient list */}
       <div className="patient-list flex flex-col h-full min-h-0">
         <h3 className="font-bold text-xl px-5 pb-2 border-b">Pacientes</h3>
-        <div className="patients flex-1 overflow-y-auto ">
-          {search.trim()
-            ? patients
-                .filter(
+        <Virtuoso
+          data={
+            search.trim()
+              ? patients.filter(
                   (x) =>
                     x.name.toLowerCase().includes(search) ||
                     x.surname.toLowerCase().includes(search) ||
                     x.national_id.includes(search)
                 )
-                .map((p, i) => {
-                  return (
-                    <PatientItem
-                      key={p.id}
-                      patient={p}
-                      selected={selected?.national_id === p.national_id}
-                      onClick={() => {
-                        setSelected(p);
-                        setAddPatient(false);
-                      }}
-                    />
-                  );
-                })
-            : patients.map((p, i) => (
-                <PatientItem
-                  key={p.id}
-                  patient={p}
-                  selected={selected?.national_id === p.national_id}
-                  onClick={() => {
-                    setSelected(p);
-                    setAddPatient(false);
-                  }}
-                />
-              ))}
-        </div>
+              : patients
+          }
+          className="patients flex-1 overflow-y-auto"
+          itemContent={(_, p) => (
+            <PatientItem
+              key={p.id}
+              patient={p}
+              selected={selected?.national_id === p.national_id}
+              onClick={() => {
+                setSelected(p);
+                setAddPatient(false);
+              }}
+            />
+          )}
+        />
       </div>
     </div>
   );
