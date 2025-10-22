@@ -37,8 +37,8 @@ jobs:
 
       - name: Clean install Tauri deps
         run: |
-            rm -rf package-lock.json
-            npm install --include=optional
+          Remove-Item -Force .\package-lock.json
+          npm install --include=optional
 
       - uses: tauri-apps/tauri-action@v0
         env:
