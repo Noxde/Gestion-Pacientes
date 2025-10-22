@@ -38,13 +38,7 @@ function PatientInfo({ selected }) {
     })
       .then((r) => {
         setVisitas(
-          r.map((x) => ({
-            fecha: new Date(x.datetime),
-            motivo: x.title,
-            diagnostico: x.description,
-            tratamiento: "",
-            notas: "",
-          }))
+          r.sort((a, b) => new Date(b.datetime) - new Date(a.datetime))
         );
       })
       .catch((err) => {
@@ -109,7 +103,11 @@ function PatientInfo({ selected }) {
                       },
                       patientId: selected.id,
                     });
-                    setVisitas((prev) => [{ ...toAdd, id: res.id }, ...prev]);
+                    setVisitas((prev) =>
+                      [res, ...prev].sort(
+                        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+                      )
+                    );
                     setToAdd({});
                     setIsDialogOpen(false);
                   } catch (err) {
