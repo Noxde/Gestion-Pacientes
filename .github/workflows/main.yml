@@ -35,9 +35,10 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: install frontend dependencies
-        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
-        run: npm install # change this to npm or pnpm depending on which one you use.
+      - name: Clean install Tauri deps
+        run: |
+            rm -rf package-lock.json
+            npm install --include=optional
 
       - uses: tauri-apps/tauri-action@v0
         env:
