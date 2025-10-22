@@ -39,7 +39,7 @@ export function Calendar28({ label, readOnly, dateValue, onChange }) {
 
   return (
     <div className="flex-1 flex flex-col gap-1">
-      <Label htmlFor="date" className="text-md">
+      <Label htmlFor="date" className="text-md text-text-secondary">
         {label}
       </Label>
       <Popover open={open} onOpenChange={!readOnly ? setOpen : null}>

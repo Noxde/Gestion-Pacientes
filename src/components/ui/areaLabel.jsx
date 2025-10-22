@@ -5,7 +5,7 @@ import { Textarea } from "./textarea";
 function AreaLabel({ label, placeholder, readOnly, value, onChange }) {
   return (
     <div className="flex flex-col gap-1">
-      <Label className="text-md">{label}</Label>
+      <Label className="text-md text-text-secondary">{label}</Label>
       <Textarea
         onChange={onChange}
         readOnly={readOnly}
