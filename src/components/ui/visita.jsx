@@ -11,11 +11,11 @@ const Visita = forwardRef(function (
 ) {
   const [visit, setVisit] = useState(
     visita ?? {
-      fecha: new Date(),
-      motivo: "",
-      diagnostico: "",
-      tratamiento: "",
-      notas: "",
+      datetime: new Date(),
+      reason: "",
+      diagnosis: "",
+      treatment: "",
+      notes: "",
     }
   );
 
@@ -35,42 +35,42 @@ const Visita = forwardRef(function (
     >
       <div className="flex gap-5 justify-stretch">
         <Calendar28
-          onChange={(e) => setVisit((prev) => ({ ...prev, fecha: e }))}
-          dateValue={visit?.fecha}
+          onChange={(e) => setVisit((prev) => ({ ...prev, datetime: e }))}
+          dateValue={new Date(visit?.datetime)}
           readOnly={readOnly}
           label={"Fecha de Consulta"}
         />
         <InputLabel
           onChange={(e) =>
-            setVisit((prev) => ({ ...prev, motivo: e.target.value }))
+            setVisit((prev) => ({ ...prev, reason: e.target.value }))
           }
+          value={visit?.reason}
           label={"Motivo de Consulta"}
-          value={visit?.motivo}
           readOnly={readOnly}
         />
       </div>
       <AreaLabel
         onChange={(e) =>
-          setVisit((prev) => ({ ...prev, diagnostico: e.target.value }))
+          setVisit((prev) => ({ ...prev, diagnosis: e.target.value }))
         }
-        value={visit?.diagnostico}
+        value={visit?.diagnosis}
         readOnly={readOnly}
         label={"Diagnostico"}
       />
       <AreaLabel
         onChange={(e) =>
-          setVisit((prev) => ({ ...prev, tratamiento: e.target.value }))
+          setVisit((prev) => ({ ...prev, treatment: e.target.value }))
         }
-        value={visit?.tratamiento}
+        value={visit?.treatment}
         readOnly={readOnly}
         label={"Tratamiento"}
       />
       <AreaLabel
         onChange={(e) =>
-          setVisit((prev) => ({ ...prev, notas: e.target.value }))
+          setVisit((prev) => ({ ...prev, notes: e.target.value }))
         }
         readOnly={readOnly}
-        value={visit?.notas}
+        value={visit?.notes}
         label={"Notas Adicionales"}
         placeholder="Observaciones, recomendaciones, proximas citas"
       />

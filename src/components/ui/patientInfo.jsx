@@ -33,7 +33,7 @@ function PatientInfo({ selected }) {
 
   // Get visits on mount
   useEffect(() => {
-    invoke("get_events_comm", {
+    invoke("get_visits_comm", {
       patientId: selected.id,
     })
       .then((r) => {
@@ -86,19 +86,26 @@ function PatientInfo({ selected }) {
               </Button>
               <Button
                 onClick={async () => {
+                  const { datetime, reason, diagnosis, treatment, notes } =
+                    toAdd;
+
                   try {
-                    const res = await invoke("save_event_comm", {
-                      newEvent: {
+                    const res = await invoke("save_visit_comm", {
+                      newVisit: {
                         id: 1,
                         patient_id: selected.id,
-                        title: toAdd.motivo,
-                        description: toAdd.diagnostico,
+                        title: "Placeholder not used yet",
+                        files: [],
                         datetime: new Date(
-                          toAdd.fecha.getTime() -
-                            toAdd.fecha.getTimezoneOffset() * 60000 // Fix for UTC date
+                          datetime.getTime() -
+                            datetime.getTimezoneOffset() * 60000 // Fix for UTC date
                         )
                           .toJSON()
                           .replace("Z", ""),
+                        reason,
+                        diagnosis,
+                        treatment,
+                        notes,
                       },
                       patientId: selected.id,
                     });
