@@ -1,20 +1,32 @@
-use crate::custom_types::structs::Visit;
+use crate::custom_types::structs::{Visit, Doc};
+use crate::db::common::save_docs;
 use rusqlite::{Connection, Result};
 use validator::Validate;
+use std::path::{Path, PathBuf};
 
-/// Save a new visit in the database
-pub fn save(mut new_visit: Visit, patient_id: i32, conn: &Connection) -> Result<Visit, String> {
+/// Save a new visit in the database (including docs)
+pub fn save(
+    mut new_visit: Visit,
+    app_data_dir: &PathBuf,
+    conn: &mut Connection,
+) -> Result<Visit, String> {
+
     new_visit
         .validate()
         .map_err(|e| format!("Visit data validation error: {}", e))?;
 
+    // Start transaction to allow rollback if docs fail
+    let tx = conn.transaction()
+        .map_err(|e| format!("DB Transaction error: {}", e))?;
+
     // Build query dynamically depending on datetime
-    let result = if let Some(datetime) = new_visit.datetime {
-        conn.query_one(
+    // Insert visit and obtain its ID
+    let visit_id: i32 = if let Some(datetime) = new_visit.datetime {
+        tx.query_row(
             "INSERT INTO visits (patient_id, title, reason, diagnosis, treatment, notes, datetime)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) RETURNING id",
             (
-                &patient_id,
+                &new_visit.patient_id,
                 &new_visit.title,
                 &new_visit.reason,
                 &new_visit.diagnosis,
@@ -26,11 +38,11 @@ pub fn save(mut new_visit: Visit, patient_id: i32, conn: &Connection) -> Result<
         )
     } else {
         // Let SQLite use DEFAULT CURRENT_TIMESTAMP
-        conn.query_one(
+        tx.query_row(
             "INSERT INTO visits (patient_id, title, reason, diagnosis, treatment, notes)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6) RETURNING id",
             (
-                &patient_id,
+                &new_visit.patient_id,
                 &new_visit.title,
                 &new_visit.reason,
                 &new_visit.diagnosis,
@@ -39,31 +51,39 @@ pub fn save(mut new_visit: Visit, patient_id: i32, conn: &Connection) -> Result<
             ),
             |row| row.get(0),
         )
-    };
+    }.map_err(|e| {
+        if let rusqlite::Error::SqliteFailure(err, _) = &e {
+            if err.code == rusqlite::ErrorCode::ConstraintViolation {
+                return "Invalid patient_id: referenced patient does not exist".to_string();
+            }
+        }
+        format!("Database error while saving visit: {}", e)
+    })?;
 
-    match result {
-        Ok(id) => {
-            new_visit.id = id;
-            Ok(new_visit)
-        }
-        Err(rusqlite::Error::SqliteFailure(e, _)) if e.extended_code == 787 => {
-            Err("Invalid patient_id: referenced patient does not exist".to_string())
-        }
-        Err(rusqlite::Error::SqliteFailure(e, _)) => {
-            Err(format!("A database error occurred while saving the visit: {}", e))
-        }
-        Err(e) => Err(format!("Failed to save the new visit: {}", e)),
-    }
+    new_visit.id = visit_id;
+
+    // Extract original file paths from new_visit.docs
+    let file_paths: Vec<String> = new_visit.docs.iter().map(|d| d.path.clone()).collect();
+
+    // Save docs
+    let saved_docs: Vec<Doc> = save_docs(app_data_dir, visit_id, &file_paths, &tx)?;
+
+    // Update visit docs to final stored docs
+    new_visit.docs = saved_docs;
+
+    // Commit only if everything succeeded
+    tx.commit().map_err(|e| format!("Transaction commit failed: {}", e))?;
+
+    Ok(new_visit)
 }
 
-/// Get all visits of a patient
-pub fn get_all(patient_id: i32, conn: &Connection) -> Result<Vec<Visit>, String> {
+pub fn get_all(patient_id: i32, data_dir: &Path, conn: &Connection) -> Result<Vec<Visit>, String> {
     let mut stmt = conn
         .prepare("SELECT * FROM visits WHERE patient_id = ?1")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+        .map_err(|e| format!("Failed to prepare visits query: {}", e))?;
 
-    let visits_iter = stmt
-        .query_map([&patient_id], |row| {
+    let mut visits = stmt
+        .query_map([patient_id], |row| {
             Ok(Visit {
                 id: row.get("id")?,
                 patient_id: row.get("patient_id")?,
@@ -72,16 +92,43 @@ pub fn get_all(patient_id: i32, conn: &Connection) -> Result<Vec<Visit>, String>
                 diagnosis: row.get("diagnosis")?,
                 treatment: row.get("treatment")?,
                 notes: row.get("notes")?,
-                files: vec![], // Files stored elsewhere (not part of visits table)
+                docs: vec![], // filled later
                 datetime: row.get("datetime")?,
             })
         })
-        .map_err(|e| format!("Failed to get visits: {}", e))?;
+        .map_err(|e| format!("Failed to fetch visits: {}", e))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("Failed to parse visits: {}", e))?;
 
-    let visits: Result<Vec<Visit>, _> = visits_iter.collect();
-    visits.map_err(|e| format!("Failed to collect visits: {}", e))
+    // Prepare once, reuse for all visits
+    let mut stmt_docs = conn
+        .prepare("SELECT id, name FROM docs WHERE visit_id = ?1")
+        .map_err(|e| format!("Failed to prepare docs query: {}", e))?;
+
+    for visit in &mut visits {
+        let docs = stmt_docs
+            .query_map([visit.id], |row| {
+                let doc_id: i32 = row.get("id")?;
+                let name: String = row.get("name")?;
+
+                // Construct full path (e.g. /home/user/.local/share/app/docs/4)
+                let path = data_dir
+                    .join("docs")
+                    .join(doc_id.to_string())
+                    .to_string_lossy()
+                    .into_owned();
+
+                Ok(Doc { path, name })
+            })
+            .map_err(|e| format!("Failed to fetch docs for visit {}: {}", visit.id, e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to parse docs for visit {}: {}", visit.id, e))?;
+
+        visit.docs = docs;
+    }
+
+    Ok(visits)
 }
-
 /// Update a visit (does not modify id or patient_id)
 pub fn update(visit: Visit, conn: &Connection) -> Result<Visit, String> {
     visit

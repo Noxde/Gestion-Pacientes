@@ -31,6 +31,12 @@ pub struct Visit {
     pub diagnosis: Option<String>,
     pub treatment: Option<String>,
     pub notes: Option<String>,
-    pub files: Vec<String>,
+    pub docs: Vec<Doc>,
     pub datetime: Option<NaiveDateTime>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Validate, Clone)]
+pub struct Doc {
+    pub path: String,
+    pub name: String,
 }

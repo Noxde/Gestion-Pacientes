@@ -8,3 +8,6 @@
 
 # Test Database
 /src/tests/test_db.sqlite
+
+# Test Files
+/src/tests/test_data/docs
