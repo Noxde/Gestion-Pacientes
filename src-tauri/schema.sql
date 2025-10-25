@@ -24,4 +24,10 @@ BEGIN;
         datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS docs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        visit_id INTEGER REFERENCES visits(id),
+        name varchar(256) NOT NULL
+    );
+
 COMMIT;
