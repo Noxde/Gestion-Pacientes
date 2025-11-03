@@ -13,6 +13,7 @@ import PatientForm from "../patientForm";
 import { invoke } from "@tauri-apps/api/core";
 import { PatientsContext } from "@/context/patientsContext";
 import VisitSkeleton from "./visitSkeleton";
+import { AlertContext } from "@/context/alertContext";
 
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
@@ -23,6 +24,7 @@ function PatientInfo({ selected }) {
   const { setPatients, setSelected } = useContext(PatientsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { showToast } = useContext(AlertContext);
 
   useEffect(() => {
     refs.current[showing]?.scrollIntoView({
@@ -89,7 +91,7 @@ function PatientInfo({ selected }) {
                         id: 1,
                         patient_id: selected.id,
                         title: "Placeholder not used yet",
-                        files: [],
+                        docs: [],
                         datetime: new Date(
                           datetime.getTime() -
                             datetime.getTimezoneOffset() * 60000 // Fix for UTC date
@@ -110,7 +112,14 @@ function PatientInfo({ selected }) {
                     );
                     setToAdd({});
                     setIsDialogOpen(false);
+                    showToast("Visita agregada", "", null, "success");
                   } catch (err) {
+                    showToast(
+                      "Ocurrio un error al agregar la visita",
+                      err,
+                      null,
+                      "error"
+                    );
                     console.error(err);
                   }
                 }}
@@ -131,14 +140,26 @@ function PatientInfo({ selected }) {
               confirmLabel="Guardar Cambios"
               value={selected}
               callback={async (form) => {
-                await invoke("update_patient_comm", {
-                  patient: form,
-                });
-                setSelected(form);
-                setPatients((prev) =>
-                  prev.map((p, i) => (form.id === p.id ? form : p))
-                );
-                setIsDialogOpen(false);
+                try {
+                  await invoke("update_patient_comm", {
+                    patient: form,
+                  });
+                  setSelected(form);
+                  setPatients((prev) =>
+                    prev.map((p, i) => (form.id === p.id ? form : p))
+                  );
+                  setIsDialogOpen(false);
+                  showToast("Cambios guardados", "", null, "success");
+                } catch (error) {
+                  if (error.includes("National")) {
+                    showToast(
+                      "Ocurrio un error al editar al paciente",
+                      `Un paciente con el DNI ${form.national_id} ya se encuentra registrado`,
+                      null,
+                      "error"
+                    );
+                  }
+                }
               }}
             />
           </>
@@ -169,8 +190,8 @@ function PatientInfo({ selected }) {
         {/* Visits */}
         <div className="flex items-center justify-between mb-5">
           <span className="flex items-center gap-2 text-xl">
-            <ClipboardList className="text-text-primary" /> Historial de Visitas
-            ({visitas.length})
+            <ClipboardList className="text-text-primary" />
+            Historial de Visitas ({visitas.length})
           </span>
 
           <Button
