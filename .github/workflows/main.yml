@@ -35,11 +35,8 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Clean install Tauri deps
-        run: |
-          Remove-Item -Force .\package-lock.json
-          Remove-Item -Force .\src-tauri\Cargo.lock
-          npm install --include=optional
+      - name: Install node dependencies
+        run: npm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
