@@ -20,10 +20,10 @@ function PatientForm({ value, callback, confirmLabel }) {
       surname: "",
       national_id: "",
       phone: "",
-      medicare: "-",
-      medicare_number: "-",
+      medicare: "",
+      medicare_number: "",
       sex: "",
-      gender: "-",
+      gender: "",
     }
   );
   const [errors, setErrors] = useState({});
@@ -133,12 +133,12 @@ function PatientForm({ value, callback, confirmLabel }) {
           <InputLabel
             value={form.medicare}
             className={errors?.medicare && "ring ring-[#d1242f]"}
-            label={"Obra Social"}
+            label={"Obra Social (opcional)"}
             name="medicare"
             onChange={(e) => {
               handleChange(e);
               if (!e.target.value.trim()) {
-                setForm((prev) => ({ ...prev, medicare: "-" }));
+                setForm((prev) => ({ ...prev, medicare: "" }));
                 setErrors((prev) => {
                   delete prev.medicare_number;
                   return prev;
@@ -149,7 +149,7 @@ function PatientForm({ value, callback, confirmLabel }) {
           />
           {errors?.medicare && (
             <p className="text-sm text-[#d1242f]">
-              La obra social es obligatoria
+              La obra social es obligatoria si se especifica un numero
             </p>
           )}
         </div>
@@ -163,7 +163,7 @@ function PatientForm({ value, callback, confirmLabel }) {
             onChange={(e) => {
               handleChange(e);
               if (!e.target.value.trim()) {
-                setForm((prev) => ({ ...prev, medicare_number: "-" }));
+                setForm((prev) => ({ ...prev, medicare_number: "" }));
                 setErrors((prev) => {
                   delete prev.medicare;
                   return prev;
@@ -174,7 +174,8 @@ function PatientForm({ value, callback, confirmLabel }) {
           />
           {errors?.medicare_number && (
             <p className="text-sm text-[#d1242f]">
-              El nro de obra social es obligatorio
+              El nro de obra social es obligatorio si se especifica una obra
+              social
             </p>
           )}
         </div>
@@ -213,12 +214,12 @@ function PatientForm({ value, callback, confirmLabel }) {
         </div>
         <InputLabel
           value={form.gender}
-          label="Genero"
+          label="Genero (opcional)"
           name="gender"
           onChange={(e) => {
             handleChange(e);
             if (!e.target.value.trim()) {
-              setForm((prev) => ({ ...prev, gender: "-" }));
+              setForm((prev) => ({ ...prev, gender: "" }));
             }
           }}
           placeholder="Ingresa el genero"
