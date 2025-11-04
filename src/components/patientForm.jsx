@@ -51,6 +51,7 @@ function PatientForm({ value, callback, confirmLabel }) {
           key !== "medicare_number" &&
           key !== "gender" &&
           !data[key]) ||
+        (key === "sex" && data.sex === "x") ||
         (key === "medicare_number" && data.medicare && !data.medicare_number) ||
         (key === "medicare" && data.medicare_number && !data.medicare)
       ) {
@@ -198,6 +199,8 @@ function PatientForm({ value, callback, confirmLabel }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
+                  {/* Dummy item to have a default value */}
+                  <SelectItem className="hidden" value="x"></SelectItem>
                   <SelectItem value="Male">M</SelectItem>
                   <SelectItem value="Female">F</SelectItem>
                 </SelectGroup>
