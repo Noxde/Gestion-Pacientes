@@ -77,7 +77,7 @@ function PatientForm({ value, callback, confirmLabel }) {
           <InputLabel
             value={form.name}
             className={errors?.name && "ring ring-[#d1242f]"}
-            label={"Nombre*"}
+            label={"Nombre"}
             name="name"
             onChange={handleChange}
             placeholder="Ingresa el nombre"
