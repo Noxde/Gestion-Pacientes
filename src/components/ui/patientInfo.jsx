@@ -14,6 +14,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { PatientsContext } from "@/context/patientsContext";
 import VisitSkeleton from "./visitSkeleton";
 import { AlertContext } from "@/context/alertContext";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { CalendarIcon } from "lucide-react";
 
 function PatientInfo({ selected }) {
   const [showing, setShowing] = useState(0);
@@ -205,8 +212,8 @@ function PatientInfo({ selected }) {
         </div>
 
         {/* scroll */}
-        <div className="h-full grid grid-cols-[1fr_50px] min-h-0 relative rounded-md border">
-          <div className="flex flex-col px-20 overflow-auto">
+        <div className="h-full grid min-h-0 relative rounded-md border">
+          <div className="flex flex-col overflow-auto">
             {/* Show when there are no visits */}
             {!visitas.length && !isLoading ? (
               <div className="h-full flex justify-center items-center">
@@ -226,50 +233,42 @@ function PatientInfo({ selected }) {
             {isLoading ? (
               <VisitSkeleton />
             ) : (
-              visitas.map((x, i, arr) => (
-                <>
-                  <Visita
-                    readOnly
-                    key={x.id}
-                    className="py-5"
-                    visita={x}
-                    ref={(el) => (refs.current[i] = el)}
-                  />
-                  {i < arr.length - 1 ? <Separator /> : null}
-                </>
-              ))
-            )}
-          </div>
+              <Accordion type="single" collapsible>
+                {visitas.map((x, i, arr) => (
+                  <AccordionItem value={`item-${i + 1}`}>
+                    <AccordionTrigger className="items-center px-5">
+                      <div className="flex items-center">
+                        <CalendarIcon className="mr-5 text-blue-400" />
+                        <div className="flex flex-col">
+                          <span className="font-bold">
+                            {new Intl.DateTimeFormat("es-ES", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                              .format(new Date(x.datetime))
+                              .replace(/ de (\d+)/, ", $1")}
+                          </span>
+                          <span className="text-text-secondary font-normal">
+                            {x.reason}
+                          </span>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
 
-          <div className="self-center flex flex-col gap-1">
-            <Button
-              className="h-[75px]"
-              onClick={() =>
-                setShowing((prev) => {
-                  if (prev - 1 < 0) {
-                    return visitas.length - 1;
-                  } else {
-                    return prev - 1;
-                  }
-                })
-              }
-            >
-              <ArrowUp />
-            </Button>
-            <Button
-              className="h-[75px]"
-              onClick={() =>
-                setShowing((prev) => {
-                  if (prev + 1 > visitas.length - 1) {
-                    return 0;
-                  } else {
-                    return prev + 1;
-                  }
-                })
-              }
-            >
-              <ArrowDown />
-            </Button>
+                    <AccordionContent className="px-5 bg-[#f9fafb]">
+                      <Visita
+                        readOnly
+                        key={x.id}
+                        className="py-5"
+                        visita={x}
+                        ref={(el) => (refs.current[i] = el)}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </div>
         </div>
       </div>
