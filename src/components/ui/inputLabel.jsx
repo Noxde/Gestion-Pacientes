@@ -15,7 +15,7 @@ function InputLabel({
     <div className="flex-1 flex flex-col gap-1">
       <Label className="text-md text-text-secondary">{label}</Label>
       <Input
-        className={className}
+        className="bg-white"
         name={name}
         onChange={onChange}
         placeholder={placeholder}

@@ -7,6 +7,7 @@ function AreaLabel({ label, placeholder, readOnly, value, onChange }) {
     <div className="flex flex-col gap-1">
       <Label className="text-md text-text-secondary">{label}</Label>
       <Textarea
+        className="bg-white"
         onChange={onChange}
         readOnly={readOnly}
         value={value}
