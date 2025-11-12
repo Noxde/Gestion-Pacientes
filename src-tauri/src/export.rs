@@ -22,8 +22,11 @@ use krilla::metadata::{DateTime, Metadata};
 use krilla::tagging::TagTree;
 
 use krilla::annotation::{LinkAnnotation, Target};
-use krilla::geom::Rect;
+use krilla::geom::{Rect, Size};
 use krilla::action::{Action, LinkAction};
+use krilla::image::Image;
+
+use std::num::NonZeroU64;
 
 const JETBRAINS_MONO_REGULAR: &[u8] = include_bytes!("../assets/fonts/JetBrainsMonoNLNerdFontMono-Regular.ttf");
 
@@ -33,7 +36,7 @@ pub fn generate_pdf(conn: &Connection, patient_id: i32) -> Result<Doc, String> {
     // Load a font.
     let font = Font::new(JETBRAINS_MONO_REGULAR.to_vec().into(), 0).unwrap();
     // Add a new page with dimensions 200x200.
-    let mut page = document.start_page_with(PageSettings::new(200.0, 200.0));
+    let mut page = document.start_page_with(PageSettings::new(2000.0, 2000.0));
     // Get the surface of the page.
     let mut surface = page.surface();
     // Draw some text.
@@ -61,6 +64,29 @@ pub fn generate_pdf(conn: &Connection, patient_id: i32) -> Result<Doc, String> {
         TextDirection::Auto,
     );
 
+    surface.set_location(NonZeroU64::new(1).unwrap());
+
+    let data = std::fs::read("src/tests/test_data/test_embed4.jpg").unwrap();
+    let image = Image::from_jpeg(data.into(), false).unwrap();
+    let size = image.size();
+    surface.draw_image(image, Size::from_wh(size.0 as f32, size.1 as f32).unwrap());
+
+    surface.set_location(NonZeroU64::new(2).unwrap());
+
+    let data = std::fs::read("src/tests/test_data/test_embed5.png").unwrap();
+    let image = Image::from_png(data.into(), false).unwrap();
+    let size = image.size();
+    surface.draw_image(image, Size::from_wh(size.0 as f32, size.1 as f32).unwrap());
+
+    // Draw some text.
+    surface.draw_text(
+        Point::from_xy(0.0, 25.0),
+        font.clone(),
+        14.0,
+        "This text has font size 14!",
+        false,
+        TextDirection::Auto,
+    );
 
     // Finish the page.
     surface.finish();
