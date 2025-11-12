@@ -97,3 +97,32 @@ pub fn update(patient: Patient, conn: &Connection) -> Result<Patient, String> {
         Err(e) => Err(format!("Failed to update the patient: {}", e)),
     }
 }
+
+// TODO: Return all patient data, including visits and their files
+pub fn get_all_data(conn: &Connection, patient_id: i32) -> Result<Patient, String> {
+    let mut stmt = conn
+        .prepare("SELECT * FROM patients WHERE patient_id = ?1")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let patients_iter = stmt
+        .query_map([patient_id], |row| {
+            Ok(Patient {
+                id: row.get("id")?,
+                name: row.get("name")?,
+                surname: row.get("surname")?,
+                national_id: row.get("national_id")?,
+                phone: row.get("phone")?,
+                medicare: row.get("medicare")?,
+                medicare_number: row.get("medicare_number")?,
+                sex: row.get("sex")?,
+                gender: row.get("gender")?,
+                description: row.get("description")?,
+            })
+        })
+        .map_err(|e| format!("Failed to get patients: {}", e))?;
+
+    let patients: Result<Vec<Patient>, _> = patients_iter.collect();
+    let p = patients.map_err(|e| format!("Failed to collect patients: {}", e));
+    let p = p.unwrap();
+    Ok(p[0].clone())
+}

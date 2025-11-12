@@ -1,6 +1,7 @@
 use crate::custom_types::structs::{
     Patient,
-    Visit
+    Visit,
+    Doc
 };
 use crate::db::{
     common::init_db,
@@ -18,6 +19,7 @@ mod custom_types;
 mod db;
 mod tests;
 mod macros;
+mod export;
 
 struct AppData {
     conn: Mutex<Option<Connection>>,
@@ -39,7 +41,8 @@ pub fn run() {
             update_patient_comm,
             save_visit_comm,
             get_visits_comm,
-            update_visit_comm
+            update_visit_comm,
+            export_to_pdf_comm
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -109,4 +112,11 @@ fn update_visit_comm(state: State<AppData>, visit: Visit) -> Result<Visit, Strin
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
     log_err!(visit::update(visit, conn_ref))
+}
+
+#[tauri::command]
+fn export_to_pdf_comm(state: State<AppData>, patient_id: i32) -> Result<Doc, String> {
+    let conn = state.conn.lock().unwrap();
+    let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
+    log_err!(export::generate_pdf(conn_ref, patient_id))
 }

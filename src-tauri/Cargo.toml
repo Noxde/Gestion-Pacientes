@@ -30,3 +30,4 @@ validator = { version = "0.20.0", features = ["derive"] }
 rusqlite = { version = "0.37.0", features = ["bundled", "chrono"] }
 serial_test = "3.2.0"
 chrono = { version = "0.4", features = ["serde"] }
+krilla = "0.5.0"
