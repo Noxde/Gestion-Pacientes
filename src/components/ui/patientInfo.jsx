@@ -89,8 +89,14 @@ function PatientInfo({ selected }) {
               </Button>
               <Button
                 onClick={async () => {
-                  const { datetime, reason, diagnosis, treatment, notes } =
-                    toAdd;
+                  const {
+                    datetime,
+                    reason,
+                    diagnosis,
+                    treatment,
+                    notes,
+                    docs,
+                  } = toAdd;
 
                   try {
                     const res = await invoke("save_visit_comm", {
@@ -98,7 +104,7 @@ function PatientInfo({ selected }) {
                         id: 1,
                         patient_id: selected.id,
                         title: "Placeholder not used yet",
-                        docs: [],
+                        docs,
                         datetime: new Date(
                           datetime.getTime() -
                             datetime.getTimezoneOffset() * 60000 // Fix for UTC date
