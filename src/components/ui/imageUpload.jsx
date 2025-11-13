@@ -36,7 +36,6 @@ function ImageUpload({ setFiles, files }) {
             ],
           });
           if (!selectedFiles) return;
-          setIsLoading(true);
 
           const docs = await Promise.all(
             selectedFiles.map(async (x) => ({
