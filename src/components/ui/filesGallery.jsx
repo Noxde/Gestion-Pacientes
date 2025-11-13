@@ -1,18 +1,16 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
-
-//TODO: Acomodar imagenes y mostrar archivos de otra forma
+import GalleryFile from "./galleryFile";
 
 function FilesGallery({ files }) {
   return (
-    <div>
+    <div className="grid grid-cols-5 auto-rows-[150px] gap-2">
       {!files.length ? (
         <div>No hay documentos</div>
       ) : (
-        <div>
+        <>
           {files.map((x) => (
-            <img src={convertFileSrc(x.path)} alt="" />
+            <GalleryFile file={x} />
           ))}
-        </div>
+        </>
       )}
     </div>
   );
