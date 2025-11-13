@@ -21,12 +21,18 @@ const Visita = forwardRef(function (
       docs: [],
     }
   );
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
     if (typeof onChange == "function") {
       onChange(visit);
     }
   }, [visit]);
+
+  useEffect(() => {
+    setVisit((prev) => ({ ...prev, docs: files }));
+    console.log(files);
+  }, [files]);
 
   return (
     <Tabs defaultValue="detalles">
@@ -97,9 +103,9 @@ const Visita = forwardRef(function (
       </TabsContent>
       <TabsContent value="adjuntos">
         {readOnly ? (
-          <FilesGallery files={visit.docs} />
+          <FilesGallery files={visita.docs} />
         ) : (
-          <ImageUpload setVisit={setVisit} />
+          <ImageUpload setVisit={setVisit} setFiles={setFiles} files={files} />
         )}
       </TabsContent>
     </Tabs>
