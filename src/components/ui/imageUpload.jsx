@@ -20,6 +20,20 @@ function ImageUpload({ setFiles, files }) {
           const selectedFiles = await open({
             multiple: true,
             directory: false,
+            filters: [
+              {
+                name: "Imagenes (png, jpg, jpeg)",
+                extensions: ["png", "jpg", "jpeg"],
+              },
+              {
+                name: "Videos (mp4)",
+                extensions: ["mp4"],
+              },
+              {
+                name: "Documentos (pdf, docx)",
+                extensions: ["pdf", "docx"],
+              },
+            ],
           });
           if (!selectedFiles) return;
           setIsLoading(true);
