@@ -259,11 +259,11 @@ function PatientInfo({ selected }) {
                       </div>
                     </AccordionTrigger>
 
-                    <AccordionContent className="px-5 bg-[#f9fafb]">
+                    <AccordionContent className="bg-[#f9fafb]">
                       <Visita
                         readOnly
                         key={x.id}
-                        className="py-5"
+                        className="p-5"
                         visita={x}
                         ref={(el) => (refs.current[i] = el)}
                       />
