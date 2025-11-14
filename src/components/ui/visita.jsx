@@ -36,18 +36,18 @@ const Visita = forwardRef(function (
 
   return (
     <Tabs defaultValue="detalles">
-      <TabsList className="bg-background rounded-none border-b p-0">
+      <TabsList className="rounded-none border-b p-0 w-full">
         <TabsTrigger
-          className="bg-background data-[state=active]:border-primary h-full rounded-none border-b-2 border-x-0 border-t-0 border-transparent data-[state=active]:shadow-none"
+          className="bg-background data-[state=active]:border-primary data-[state=active]:shadow-none h-full rounded-none border-b-2 border-x-0 border-t-0 border-transparent"
           value="detalles"
         >
           Detalles de la visita
         </TabsTrigger>
         <TabsTrigger
-          className="bg-background data-[state=active]:border-primary h-full rounded-none border-b-2 border-x-0 border-t-0 border-transparent data-[state=active]:shadow-none"
+          className="bg-background data-[state=active]:border-primary data-[state=active]:shadow-none h-full rounded-none border-b-2 border-x-0 border-t-0 border-transparent"
           value="adjuntos"
         >
-          Adjuntos ({visita.docs.length})
+          Adjuntos {visita ? `(${visita.docs.length})` : ""}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="detalles">
