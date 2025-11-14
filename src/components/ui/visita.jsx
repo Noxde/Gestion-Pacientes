@@ -72,6 +72,7 @@ const Visita = forwardRef(function (
               value={visit?.reason}
               label={"Motivo de Consulta"}
               readOnly={readOnly}
+              placeholder={readOnly ? "" : "Ingresa el motivo de la visita"}
             />
           </div>
           <AreaLabel
@@ -81,6 +82,7 @@ const Visita = forwardRef(function (
             value={visit?.diagnosis}
             readOnly={readOnly}
             label={"Diagnostico"}
+            placeholder={readOnly ? "" : "Ingresa el diagnostico"}
           />
           <AreaLabel
             onChange={(e) =>
@@ -89,6 +91,7 @@ const Visita = forwardRef(function (
             value={visit?.treatment}
             readOnly={readOnly}
             label={"Tratamiento"}
+            placeholder={readOnly ? "" : "Ingresa el tratamiento"}
           />
           <AreaLabel
             onChange={(e) =>
@@ -97,7 +100,9 @@ const Visita = forwardRef(function (
             readOnly={readOnly}
             value={visit?.notes}
             label={"Notas Adicionales"}
-            placeholder="Observaciones, recomendaciones, proximas citas"
+            placeholder={
+              readOnly ? "" : "Observaciones, recomendaciones, proximas citas"
+            }
           />
         </div>
       </TabsContent>
