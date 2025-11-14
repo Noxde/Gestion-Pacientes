@@ -30,6 +30,11 @@ function PatientForm({ value, callback, confirmLabel }) {
 
   function handleChange(e) {
     const { name, value } = e.target;
+    if (name == "national_id" || name == "phone" || name == "medicare_number") {
+      if (/\D/.test(value)) return;
+    }
+    if (name == "national_id" && value.length > 8) return;
+
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => {
       delete prev[name];
