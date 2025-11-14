@@ -61,10 +61,7 @@ function PatientInfo({ selected }) {
 
   return (
     <Dialog open={isDialogOpen}>
-      <DialogContent
-        showCloseButton={false}
-        onInteractOutside={() => setIsDialogOpen(false)}
-      >
+      <DialogContent showCloseButton={false}>
         {dialogContent === "add" ? (
           <>
             <DialogHeader>
