@@ -47,7 +47,7 @@ const Visita = forwardRef(function (
           className="bg-background data-[state=active]:border-primary h-full rounded-none border-b-2 border-x-0 border-t-0 border-transparent data-[state=active]:shadow-none"
           value="adjuntos"
         >
-          Adjuntos
+          Adjuntos ({visita.docs.length})
         </TabsTrigger>
       </TabsList>
       <TabsContent value="detalles">
