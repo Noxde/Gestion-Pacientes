@@ -42,7 +42,7 @@ export const AlertContextProvider = function ({ children }) {
     }
   }
 
-  const contextValue = { showToast: showToast };
+  const contextValue = { showToast: showToast, toast };
 
   return (
     <AlertContext.Provider value={contextValue}>
