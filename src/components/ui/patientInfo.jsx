@@ -23,8 +23,6 @@ import {
 import { CalendarIcon } from "lucide-react";
 
 function PatientInfo({ selected }) {
-  const [showing, setShowing] = useState(0);
-  const refs = useRef([]);
   const [toAdd, setToAdd] = useState({});
   const [visitas, setVisitas] = useState([]);
   const [dialogContent, setDialogContent] = useState("add");
@@ -32,13 +30,6 @@ function PatientInfo({ selected }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { showToast, toast } = useContext(AlertContext);
-
-  useEffect(() => {
-    refs.current[showing]?.scrollIntoView({
-      behavior: "smooth",
-      scrollMarginTop: "20px",
-    });
-  }, [showing]);
 
   // Get visits on mount
   useEffect(() => {
@@ -319,13 +310,7 @@ function PatientInfo({ selected }) {
                     </AccordionTrigger>
 
                     <AccordionContent className="bg-[#f9fafb]">
-                      <Visita
-                        readOnly
-                        key={x.id}
-                        className="p-5"
-                        visita={x}
-                        ref={(el) => (refs.current[i] = el)}
-                      />
+                      <Visita readOnly key={x.id} className="p-5" visita={x} />
                     </AccordionContent>
                   </AccordionItem>
                 ))}
