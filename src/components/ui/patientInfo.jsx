@@ -23,22 +23,13 @@ import {
 import { CalendarIcon } from "lucide-react";
 
 function PatientInfo({ selected }) {
-  const [showing, setShowing] = useState(0);
-  const refs = useRef([]);
   const [toAdd, setToAdd] = useState({});
   const [visitas, setVisitas] = useState([]);
   const [dialogContent, setDialogContent] = useState("add");
   const { setPatients, setSelected } = useContext(PatientsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { showToast } = useContext(AlertContext);
-
-  useEffect(() => {
-    refs.current[showing]?.scrollIntoView({
-      behavior: "smooth",
-      scrollMarginTop: "20px",
-    });
-  }, [showing]);
+  const { showToast, toast } = useContext(AlertContext);
 
   // Get visits on mount
   useEffect(() => {
@@ -138,7 +129,7 @@ function PatientInfo({ selected }) {
               </Button>
             </div>
           </>
-        ) : (
+        ) : dialogContent === "edit" ? (
           <>
             <DialogHeader>
               <DialogTitle>Editar Paciente</DialogTitle>
@@ -173,6 +164,52 @@ function PatientInfo({ selected }) {
               }}
             />
           </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Exportar PDF</DialogTitle>
+              <Separator className="my-2" />
+              <div className="flex flex-col">
+                <p>Esto va a crear un pdf con:</p>
+                <ul className="list-disc ml-5">
+                  <li>Datos del paciente</li>
+                  <li>Historial completo de visitas</li>
+                  <li>Todos los archivos adjuntos en visitas</li>
+                </ul>
+
+                <Separator className="my-5" />
+
+                <div className="self-end">
+                  <Button
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                    }}
+                    variant="outline"
+                    className="mr-2"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const t = toast.loading("Exportando PDF");
+                      setIsDialogOpen(false);
+
+                      const pdf = await invoke("export_to_pdf_comm", {
+                        patientId: selected.id,
+                      });
+
+                      toast.success("PDF exportado", {
+                        description: pdf.path,
+                        id: t,
+                      });
+                    }}
+                  >
+                    Exportar
+                  </Button>
+                </div>
+              </div>
+            </DialogHeader>
+          </>
         )}
       </DialogContent>
 
@@ -184,16 +221,29 @@ function PatientInfo({ selected }) {
             {selected?.national_id}
           </span>
 
-          <Button
-            className="cursor-pointer"
-            variant="outline"
-            onClick={() => {
-              setDialogContent("edit");
-              setIsDialogOpen(true);
-            }}
-          >
-            Editar
-          </Button>
+          <div>
+            <Button
+              variant="outline"
+              className="mr-2"
+              onClick={() => {
+                setDialogContent("export");
+                setIsDialogOpen(true);
+              }}
+            >
+              Exportar a PDF
+            </Button>
+
+            <Button
+              className="cursor-pointer"
+              variant="outline"
+              onClick={() => {
+                setDialogContent("edit");
+                setIsDialogOpen(true);
+              }}
+            >
+              Editar
+            </Button>
+          </div>
         </div>
 
         <Separator className="my-5" />
@@ -260,13 +310,7 @@ function PatientInfo({ selected }) {
                     </AccordionTrigger>
 
                     <AccordionContent className="bg-[#f9fafb]">
-                      <Visita
-                        readOnly
-                        key={x.id}
-                        className="p-5"
-                        visita={x}
-                        ref={(el) => (refs.current[i] = el)}
-                      />
+                      <Visita readOnly key={x.id} className="p-5" visita={x} />
                     </AccordionContent>
                   </AccordionItem>
                 ))}
