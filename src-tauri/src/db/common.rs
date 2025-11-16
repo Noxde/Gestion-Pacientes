@@ -11,6 +11,16 @@ pub fn init_db(app_data_dir: &PathBuf) -> Result<Connection, String> {
             .map_err(|e| format!("Failed to create database directory: {}", e.to_string()))?;
     };
 
+    // Ensure base docs directory exists
+    let docs_dir = app_data_dir.join("docs");
+    fs::create_dir_all(&docs_dir)
+        .map_err(|e| format!("Failed to create docs directory: {}", e))?;
+
+    // Ensure base exports directory exists
+    let exports_dir = app_data_dir.join("exports");
+    fs::create_dir_all(&exports_dir)
+        .map_err(|e| format!("Failed to create exports directory: {}", e))?;
+
     let conn = Connection::open(&db_path)
         .map_err(|e| format!("Database connection failed: {}", e.to_string()))?;
 
@@ -35,13 +45,10 @@ pub fn save_docs(
 ) -> Result<Vec<Doc>, String> {
     let mut saved_docs = Vec::new();
 
-    // Ensure base docs directory exists
-    let docs_dir = app_data_dir.join("docs");
-    fs::create_dir_all(&docs_dir)
-        .map_err(|e| format!("Failed to create docs directory: {}", e))?;
-
     for original_path in paths {
         let original_path = Path::new(original_path);
+
+        let docs_dir = app_data_dir.join("docs");
 
         let file_name = original_path.file_name()
             .ok_or_else(|| format!("{}: Invalid file path.", original_path.display()))?

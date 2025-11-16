@@ -23,10 +23,14 @@ pub fn setup_test_db() -> (Connection, PathBuf) {
     if docs_dir.exists() {
         fs::remove_dir_all(&docs_dir).unwrap();
     }
-    fs::create_dir_all(data_dir.join("docs")).unwrap();
+    fs::create_dir_all(&docs_dir).unwrap();
 
     patient::save(sample_patient(), &conn).expect("Failed to save patient");
     patient::save(another_sample_patient(), &conn).expect("Failed to save patient");
+
+    // Restore .gitkeep
+    let gitkeep = docs_dir.join(".gitkeep");
+    fs::write(gitkeep, vec![]).expect("Failed to restore docs/.gitkeep");
 
     (conn, data_dir)
 }

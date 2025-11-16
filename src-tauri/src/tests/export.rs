@@ -36,6 +36,7 @@ fn setup_test_db() -> (Connection, PathBuf) {
 
 #[test]
 #[ignore]
+#[serial]
 fn test_generate_pdf() {
     let (conn, data_dir) = setup_test_db();
     let conn = conn;
@@ -45,8 +46,67 @@ fn test_generate_pdf() {
         panic!("Can't generate pdf, there are no patients!");
     }
 
-    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, None).unwrap();
+    // Test default save_path
+    export::generate_pdf(patients[0].id, &data_dir, &conn, None).unwrap();
 
-    println!("PDF generated successfully. Path: {}", doc.path);
+    // Create test path
+    let test_ex_dir = data_dir.join("test_exports");
+    if test_ex_dir.exists() {
+        fs::remove_dir_all(&test_ex_dir).unwrap();
+    }
+    fs::create_dir_all(&test_ex_dir).unwrap();
+
+    // Test providing a path to a folder
+    let test_file_name = test_ex_dir.join("gregory_house_historia_medica.pdf");
+    let test_ex_dir_string = test_ex_dir.to_string_lossy().to_string();
+    // Assert the file does not exist
+    assert!(!test_file_name.exists());
+    // Export
+    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, Some(test_ex_dir_string.clone())).unwrap();
+    // The file exists
+    assert!(test_file_name.exists());
+    assert_eq!(doc.path, test_file_name.to_string_lossy().to_string());
+
+    // Test providing a path to a file
+    let test_file_name = test_ex_dir.join("test_name.pdf");
+    let test_file_name_string = test_file_name.to_string_lossy().to_string();
+    // Assert the file does not exist
+    assert!(!test_file_name.exists());
+    // Export
+    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, Some(test_file_name_string.clone())).unwrap();
+    // The file exists
+    assert!(test_file_name.exists());
+    assert_eq!(doc.path, test_file_name_string);
+
+    // Test retry with folder path
+    let exports_path = data_dir.join("exports");
+    // Delete the previous exporst
+    fs::remove_dir_all(&exports_path).unwrap();
+    fs::create_dir_all(&exports_path).unwrap();
+    let default_path = exports_path.join("gregory_house_historia_medica.pdf");
+    assert!(!default_path.exists());
+    // Export
+    let invalid_path_folder = String::from("/this/is/invalid/");
+    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, Some(invalid_path_folder)).unwrap();
+    // The file was created in the default path
+    assert!(default_path.exists());
+    assert_eq!(doc.path, default_path.to_string_lossy().to_string());
+
+    // Test retry with file name
+    let exports_path = data_dir.join("exports");
+    // Delete the previous exporst
+    fs::remove_dir_all(&exports_path).unwrap();
+    fs::create_dir_all(&exports_path).unwrap();
+    let default_path = exports_path.join("gregory_house_historia_medica.pdf");
+    assert!(!default_path.exists());
+    // Export
+    let invalid_path_folder = String::from("/this/is/invalid/filename.pdf");
+    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, Some(invalid_path_folder)).unwrap();
+    // The file was created in the default path
+    assert!(default_path.exists());
+    assert_eq!(doc.path, default_path.to_string_lossy().to_string());
+
+    // Restore .gitkeep
+    let gitkeep = exports_path.join(".gitkeep");
+    fs::write(gitkeep, vec![]).expect("Failed to restore exports/.gitkeep");
 }
-

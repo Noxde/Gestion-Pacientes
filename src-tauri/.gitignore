@@ -11,3 +11,5 @@
 
 # Test Files
 /src/tests/test_data/docs
+/src/tests/test_data/exports
+/src/tests/test_data/test_exports
