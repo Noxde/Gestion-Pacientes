@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Label } from "./label";
-import { Input } from "./input";
+import { Label } from "../shadcn/label";
+import { Input } from "../shadcn/input";
 
 function InputLabel({
   className,

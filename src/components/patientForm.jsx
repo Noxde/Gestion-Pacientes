@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/shadcn/label";
 import {
   Select,
   SelectContent,
@@ -7,9 +7,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+} from "@/components/shadcn/select";
+import { Separator } from "@/components/shadcn/separator";
+import { Button } from "@/components/shadcn/button";
 import InputLabel from "@/components/ui/inputLabel";
 
 function PatientForm({ value, callback, confirmLabel }) {
@@ -30,7 +30,7 @@ function PatientForm({ value, callback, confirmLabel }) {
 
   function handleChange(e) {
     const { name, value } = e.target;
-    if (name == "national_id" || name == "phone" || name == "medicare_number") {
+    if (name == "national_id" || name == "phone") {
       if (/\D/.test(value)) return;
     }
     if (name == "national_id" && value.length > 8) return;

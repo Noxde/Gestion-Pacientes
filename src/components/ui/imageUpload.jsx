@@ -1,5 +1,5 @@
 import { Upload } from "lucide-react";
-import { Label } from "./label";
+import { Label } from "../shadcn/label";
 import { open } from "@tauri-apps/plugin-dialog";
 import { basename } from "@tauri-apps/api/path";
 import FileItem from "./fileItem";

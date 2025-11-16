@@ -1,6 +1,6 @@
 import { createContext, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/shadcn/button";
 
 export const AlertContext = createContext();
 

@@ -1,13 +1,13 @@
-import { ArrowDown, ArrowUp, ClipboardList } from "lucide-react";
-import { Button } from "./button";
-import { Separator } from "./separator";
-import { useEffect, useState, useRef, useContext } from "react";
+import { ClipboardList } from "lucide-react";
+import { Button } from "../shadcn/button";
+import { Separator } from "../shadcn/separator";
+import { useEffect, useState, useContext } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/shadcn/dialog";
 import Visita from "./visita";
 import PatientForm from "../patientForm";
 import { invoke } from "@tauri-apps/api/core";
@@ -19,8 +19,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/components/shadcn/accordion";
 import { CalendarIcon } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
 
 function PatientInfo({ selected }) {
   const [toAdd, setToAdd] = useState({});
@@ -191,11 +192,22 @@ function PatientInfo({ selected }) {
                   </Button>
                   <Button
                     onClick={async () => {
-                      const t = toast.loading("Exportando PDF");
+                      const path = await save({
+                        filters: [
+                          {
+                            name: "Historia medica",
+                            extensions: ["pdf"],
+                          },
+                        ],
+                      });
+                      if (!path) return;
                       setIsDialogOpen(false);
+
+                      const t = toast.loading("Exportando PDF");
 
                       const pdf = await invoke("export_to_pdf_comm", {
                         patientId: selected.id,
+                        savePath: path,
                       });
 
                       toast.success("PDF exportado", {
