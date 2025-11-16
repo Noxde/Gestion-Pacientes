@@ -8,7 +8,7 @@ import AddPatient from "./components/ui/addPatient";
 import { PatientsContext } from "./context/patientsContext";
 import { UserSearch } from "lucide-react";
 import { AlertContext } from "./context/alertContext";
-import { Toaster } from "./components/ui/sonner";
+import { Toaster } from "./components/shadcn/sonner";
 
 function App() {
   const { selected, setPatients, patients } = useContext(PatientsContext);

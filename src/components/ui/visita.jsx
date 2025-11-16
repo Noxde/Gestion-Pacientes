@@ -1,9 +1,14 @@
-import { Calendar28 } from "./dateInput";
+import { Calendar28 } from "../shadcn/dateInput";
 import InputLabel from "./inputLabel";
-import AreaLabel from "./areaLabel";
+import AreaLabel from "../shadcn/areaLabel";
 import { forwardRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/shadcn/tabs";
 import ImageUpload from "./imageUpload";
 import FilesGallery from "./filesGallery";
 

@@ -1,6 +1,6 @@
 import React from "react";
-import { Skeleton } from "./skeleton";
-import { Separator } from "./separator";
+import { Skeleton } from "../shadcn/skeleton";
+import { Separator } from "../shadcn/separator";
 
 function VisitSkeleton() {
   return (

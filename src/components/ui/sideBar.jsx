@@ -1,6 +1,6 @@
 import { Search, Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/shadcn/input";
+import { Button } from "@/components/shadcn/button";
 import PatientItem from "@/components/ui/patientItem";
 import { useContext, useState } from "react";
 import { PatientsContext } from "@/context/patientsContext";
