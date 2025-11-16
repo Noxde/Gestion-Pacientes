@@ -1,6 +1,6 @@
 import React from "react";
-import { Label } from "./label";
-import { Textarea } from "./textarea";
+import { Label } from "../shadcn/label";
+import { Textarea } from "../shadcn/textarea";
 
 function AreaLabel({ label, placeholder, readOnly, value, onChange }) {
   return (

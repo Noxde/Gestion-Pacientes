@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { PatientsContext } from "@/context/patientsContext";
-import PatientForm from "../patientForm";
+import PatientForm from "./patientForm";
 import { invoke } from "@tauri-apps/api/core";
 import { AlertContext } from "@/context/alertContext";
 

@@ -1,6 +1,6 @@
-import { Calendar28 } from "../shadcn/dateInput";
-import InputLabel from "./inputLabel";
-import AreaLabel from "../shadcn/areaLabel";
+import { Calendar28 } from "../../shadcn/dateInput";
+import InputLabel from "../inputLabel";
+import AreaLabel from "../areaLabel";
 import { forwardRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -9,7 +9,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/shadcn/tabs";
-import ImageUpload from "./imageUpload";
+import FileUpload from "./fileUpload";
 import FilesGallery from "./filesGallery";
 
 const Visita = forwardRef(function (
@@ -115,7 +115,7 @@ const Visita = forwardRef(function (
         {readOnly ? (
           <FilesGallery files={visita.docs} />
         ) : (
-          <ImageUpload setVisit={setVisit} setFiles={setFiles} files={files} />
+          <FileUpload setVisit={setVisit} setFiles={setFiles} files={files} />
         )}
       </TabsContent>
     </Tabs>

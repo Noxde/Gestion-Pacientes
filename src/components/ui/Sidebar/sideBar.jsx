@@ -1,7 +1,7 @@
 import { Search, Plus } from "lucide-react";
 import { Input } from "@/components/shadcn/input";
 import { Button } from "@/components/shadcn/button";
-import PatientItem from "@/components/ui/patientItem";
+import PatientItem from "@/components/ui/Sidebar/patientItem";
 import { useContext, useState } from "react";
 import { PatientsContext } from "@/context/patientsContext";
 import { Virtuoso } from "react-virtuoso";

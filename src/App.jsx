@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./globals.css";
 
-import SideBar from "@/components/ui/sideBar";
+import SideBar from "@/components/ui/Sidebar/sideBar";
 import PatientInfo from "./components/ui/patientInfo";
 import AddPatient from "./components/ui/addPatient";
 import { PatientsContext } from "./context/patientsContext";

@@ -1,10 +1,10 @@
 import { Upload } from "lucide-react";
-import { Label } from "../shadcn/label";
+import { Label } from "../../shadcn/label";
 import { open } from "@tauri-apps/plugin-dialog";
 import { basename } from "@tauri-apps/api/path";
 import FileItem from "./fileItem";
 
-function ImageUpload({ setFiles, files }) {
+function FileUpload({ setFiles, files }) {
   function handleRemove(e) {
     setFiles((prev) => prev.filter((x) => x.name !== e.name));
   }
@@ -75,4 +75,4 @@ function ImageUpload({ setFiles, files }) {
   );
 }
 
-export default ImageUpload;
+export default FileUpload;

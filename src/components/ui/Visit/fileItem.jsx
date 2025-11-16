@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { Button } from "../shadcn/button";
+import { Button } from "../../shadcn/button";
 import { File, X } from "lucide-react";
 
 function FileItem({ file, onClick }) {

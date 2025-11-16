@@ -8,8 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/shadcn/dialog";
-import Visita from "./visita";
-import PatientForm from "../patientForm";
+import Visita from "./Visit/visita";
+import PatientForm from "./patientForm";
 import { invoke } from "@tauri-apps/api/core";
 import { PatientsContext } from "@/context/patientsContext";
 import VisitSkeleton from "./visitSkeleton";
