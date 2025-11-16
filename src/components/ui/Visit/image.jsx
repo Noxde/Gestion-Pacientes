@@ -10,7 +10,7 @@ function Image({ src, name }) {
   return (
     <Dialog>
       <DialogContent className="max-h-[calc(100svh-20px)] w-fit flex flex-col items-center overflow-hidden">
-        <DialogTitle className="self-start">Image</DialogTitle>
+        <DialogTitle className="self-start">Imagen</DialogTitle>
         <img className="inline-block max-h-[calc(100svh-150px)]" src={src} />
         <DialogHeader className="self-start font-medium">{name}</DialogHeader>
       </DialogContent>

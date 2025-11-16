@@ -12,7 +12,7 @@ function FileUpload({ setFiles, files }) {
   return (
     <div>
       <Label className="text-md text-text-secondary mb-1">
-        Adjuntar imagenes
+        Adjuntar archivos
       </Label>
 
       <label
@@ -22,6 +22,10 @@ function FileUpload({ setFiles, files }) {
             directory: false,
             filters: [
               {
+                name: "Archivos permitidos (png, jpg, jpeg, mp4, pdf, docx, txt)",
+                extensions: ["png", "jpg", "jpeg", "mp4", "pdf", "docx", "txt"],
+              },
+              {
                 name: "Imagenes (png, jpg, jpeg)",
                 extensions: ["png", "jpg", "jpeg"],
               },
@@ -30,8 +34,8 @@ function FileUpload({ setFiles, files }) {
                 extensions: ["mp4"],
               },
               {
-                name: "Documentos (pdf, docx)",
-                extensions: ["pdf", "docx"],
+                name: "Documentos (pdf, docx, txt)",
+                extensions: ["pdf", "docx", "txt"],
               },
             ],
           });
@@ -58,7 +62,7 @@ function FileUpload({ setFiles, files }) {
           <p className="text-text-secondary font-bold">Click para subir</p>
           {!files.length && (
             <p className="text-text-secondary text-sm">
-              Archivos permitidos (.jpg/jpeg, .png, .mp4, .docx, .pdf)
+              Archivos permitidos (.jpg/jpeg, .png, .mp4, .docx, .pdf, .txt)
             </p>
           )}
         </div>
