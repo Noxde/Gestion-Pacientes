@@ -7,7 +7,7 @@ use std::{fs, path::PathBuf, fs::canonicalize};
 use serial_test::serial;
 use chrono::NaiveDate;
 
-fn setup_test_db() -> (Connection, PathBuf) {
+pub fn setup_test_db() -> (Connection, PathBuf) {
     let db_path = PathBuf::from("src/tests/test_db.sqlite");
     if db_path.exists() {
         fs::remove_file(&db_path).unwrap();
@@ -31,7 +31,7 @@ fn setup_test_db() -> (Connection, PathBuf) {
     (conn, data_dir)
 }
 
-fn sample_visit() -> Visit {
+pub fn sample_visit() -> Visit {
     let data_dir = canonicalize("src/tests/test_data")
         .expect("Failed to get absolute path");
     let file1 = Doc {
@@ -61,7 +61,7 @@ fn sample_visit() -> Visit {
     }
 }
 
-fn another_sample_visit() -> Visit {
+pub fn another_sample_visit() -> Visit {
     Visit {
         id: 2,
         patient_id: 1,

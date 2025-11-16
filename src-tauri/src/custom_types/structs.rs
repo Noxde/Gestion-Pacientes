@@ -40,3 +40,9 @@ pub struct Doc {
     pub path: String,
     pub name: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Validate, Clone)]
+pub struct MedicalHistory {
+    pub patient: Patient,
+    pub visits: Vec<Visit>,
+}

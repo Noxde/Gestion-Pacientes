@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-use crate::patient::get_all_data;
+use crate::patient::get_medical_history;
 use crate::custom_types::structs::{Doc, Patient};
 use krilla::Document;
 use std::{fs, path::Path};
@@ -30,7 +30,7 @@ use std::num::NonZeroU64;
 
 const JETBRAINS_MONO_REGULAR: &[u8] = include_bytes!("../assets/fonts/JetBrainsMonoNLNerdFontMono-Regular.ttf");
 
-pub fn generate_pdf(conn: &Connection, patient_id: i32) -> Result<Doc, String> {
+pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save_path: Option<String>) -> Result<Doc, String> {
     // Create a new document.
     let mut document = Document::new();
     // Load a font.

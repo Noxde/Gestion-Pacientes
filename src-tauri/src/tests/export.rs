@@ -38,15 +38,14 @@ fn setup_test_db() -> (Connection, PathBuf) {
 #[ignore]
 fn test_generate_pdf() {
     let (conn, data_dir) = setup_test_db();
-    let mut conn = conn; // make mutable for save() which needs &mut Connection
+    let conn = conn;
 
-    // Test get_all() with no visits
     let patients = patient::get_all(&conn).expect("Should get patients");
     if patients.is_empty() {
         panic!("Can't generate pdf, there are no patients!");
     }
 
-    let doc = export::generate_pdf(&conn, patients[0].id).unwrap();
+    let doc = export::generate_pdf(patients[0].id, &data_dir, &conn, None).unwrap();
 
     println!("PDF generated successfully. Path: {}", doc.path);
 }

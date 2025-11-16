@@ -1,6 +1,8 @@
-use crate::custom_types::structs::Patient;
+use crate::custom_types::structs::{Patient, MedicalHistory};
+use crate::db::visit;
 use rusqlite::{Connection, Result};
 use validator::Validate;
+use std::path::PathBuf;
 
 pub fn save(mut new_patient: Patient, conn: &Connection) -> Result<Patient, String> {
     new_patient
@@ -98,14 +100,11 @@ pub fn update(patient: Patient, conn: &Connection) -> Result<Patient, String> {
     }
 }
 
-// TODO: Return all patient data, including visits and their files
-pub fn get_all_data(conn: &Connection, patient_id: i32) -> Result<Patient, String> {
-    let mut stmt = conn
-        .prepare("SELECT * FROM patients WHERE patient_id = ?1")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
-
-    let patients_iter = stmt
-        .query_map([patient_id], |row| {
+pub fn get(id: i32, conn: &Connection) -> Result<Patient, String> {
+    conn.query_row(
+        "SELECT * FROM patients WHERE id = ?1",
+        [id],
+        |row| {
             Ok(Patient {
                 id: row.get("id")?,
                 name: row.get("name")?,
@@ -118,11 +117,22 @@ pub fn get_all_data(conn: &Connection, patient_id: i32) -> Result<Patient, Strin
                 gender: row.get("gender")?,
                 description: row.get("description")?,
             })
-        })
-        .map_err(|e| format!("Failed to get patients: {}", e))?;
+        }
+    )
+    .map_err(|e| format!("Failed to load patient {}: {}", id, e))
+}
 
-    let patients: Result<Vec<Patient>, _> = patients_iter.collect();
-    let p = patients.map_err(|e| format!("Failed to collect patients: {}", e));
-    let p = p.unwrap();
-    Ok(p[0].clone())
+pub fn get_medical_history(
+    conn: &Connection,
+    patient_id: i32,
+    data_dir: &PathBuf,
+) -> Result<MedicalHistory, String> {
+    // 1. Fetch patient
+    let patient = self::get(patient_id, conn)?;
+
+    // 2. Fetch visits (this already loads docs and paths)
+    let visits = visit::get_all(patient_id, data_dir, conn)?;
+
+    // 3. Return complete medical history
+    Ok(MedicalHistory { patient, visits })
 }

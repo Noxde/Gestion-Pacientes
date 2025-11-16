@@ -116,8 +116,11 @@ fn update_visit_comm(state: State<AppData>, visit: Visit) -> Result<Visit, Strin
 }
 
 #[tauri::command]
-fn export_to_pdf_comm(state: State<AppData>, patient_id: i32) -> Result<Doc, String> {
+fn export_to_pdf_comm(state: State<AppData>, patient_id: i32, save_path: Option<String>) -> Result<Doc, String> {
     let conn = state.conn.lock().unwrap();
     let conn_ref = conn.as_ref().ok_or("Database not initialized")?;
-    log_err!(export::generate_pdf(conn_ref, patient_id))
+
+    let data_dir = state.data_dir.lock().unwrap();
+    let data_dir_ref = data_dir.as_ref().ok_or("Database not initialized")?;
+    log_err!(export::generate_pdf(patient_id, data_dir_ref, conn_ref, save_path))
 }
