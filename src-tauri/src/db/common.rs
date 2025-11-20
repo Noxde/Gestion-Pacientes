@@ -1,7 +1,11 @@
 use rusqlite::{Connection, Result, Transaction};
 use std::{fs,
+    str::FromStr,
     path::{Path, PathBuf}};
-use crate::custom_types::structs::Doc;
+use crate::custom_types::{
+    structs::Doc,
+    enums::FileType,
+};
 
 pub fn init_db(app_data_dir: &PathBuf) -> Result<Connection, String> {
     let db_path = app_data_dir.join("db.sqlite");
@@ -46,6 +50,9 @@ pub fn save_docs(
     let mut saved_docs = Vec::new();
 
     for original_path in paths {
+        // Check the file type
+        FileType::from_str(&original_path)?;
+
         let original_path = Path::new(original_path);
 
         let docs_dir = app_data_dir.join("docs");

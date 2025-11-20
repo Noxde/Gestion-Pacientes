@@ -126,9 +126,19 @@ fn test_get_save_update() {
     // Saving with invalid title
     let mut bad_visit = sample_visit();
     bad_visit.title = "".to_string();
-    let result = visit::save(bad_visit, &data_dir, &mut conn);
+    let result = visit::save(bad_visit.clone(), &data_dir, &mut conn);
     assert!(result.is_err());
     assert!(result.err().unwrap().contains("Title cannot be empty"));
+
+    // Invalid file type
+    bad_visit.title = "valid title".to_string();
+    let bad_doc = Doc {
+        name: String::new(),
+        path: String::from("invalid.extension"),
+    };
+    bad_visit.docs.push(bad_doc);
+    let result = visit::save(bad_visit.clone(), &data_dir, &mut conn);
+    assert_eq!(result.err().unwrap(), "Unsupported file type: invalid.extension");
 
     // Update
     v.title = "Not a Routine Check".to_string();
