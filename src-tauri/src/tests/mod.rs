@@ -4,3 +4,5 @@ pub mod patient;
 pub mod visit;
 #[cfg(test)]
 pub mod export;
+#[cfg(test)]
+pub mod enums;
