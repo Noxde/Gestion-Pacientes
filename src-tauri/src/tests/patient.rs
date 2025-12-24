@@ -6,6 +6,7 @@ use crate::tests::visit::{
     setup_test_db as setup_test_db_and_appdir,
     another_sample_visit
 };
+use rand::prelude::*;
 use rusqlite::Connection;
 use std::{fs, path::PathBuf};
 use serial_test::serial;
@@ -49,6 +50,100 @@ pub fn another_sample_patient() -> Patient {
         sex: Sex::Male,
         gender: Some("Male".to_string()),
         description: None,
+    }
+}
+
+pub fn random_patient() -> Patient {
+    let mut rng = rand::rng();
+
+    let ids = vec![3, 12, 1045];
+
+    let names = vec![
+        "James Oliver",
+        "Charles Alexander Long Name Francis Johnson",
+        "Joe",
+    ];
+
+    let surnames = vec![
+        "Thompson York",
+        "Van der Linden Montgomery-Smith the Third",
+        "Li",
+    ];
+
+    let national_ids = vec![
+        "44556677",
+        "10293847561029384756",
+        "99",
+    ];
+
+    let phones = vec![
+        "555-1553",
+        "+1-555-987-6543-EXT-9921",
+        "123",
+    ];
+
+    let medicare_names = vec![
+        "CVS Health Platinum Coverage",
+        "United International Comprehensive Medical Insurance Plan Plus",
+        "Basic Coverage",
+    ];
+
+    let medicare_numbers = vec![
+        "3HF9AKS9F9JS-GGH1283HSK-LSJ93JF",
+        "A1B2C3D4E5F6G7H8I9J0-KLMNOP-2024-EXTENDED",
+        "0000-TEST-PLACEHOLDER",
+    ];
+
+    let sexes = vec![
+        Sex::Male,
+        Sex::Female,
+    ];
+
+    let genders = vec![
+        "Person of transgendered experience",
+        "Non-binary gender identity with fluid expression over time",
+        "Cisgender male",
+    ];
+
+    let descriptions = vec![
+        "James is very tall. James likes to say: Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.",
+        "Patient presents a complex medical history spanning multiple years, including recurring evaluations, specialist referrals, and long-term treatment adherence concerns.",
+        "No significant medical history reported.",
+    ];
+
+
+    let id = *ids.choose(&mut rng).unwrap();
+    let name = names.choose(&mut rng).unwrap().to_string();
+    let surname = surnames.choose(&mut rng).unwrap().to_string();
+    let national_id = national_ids.choose(&mut rng).unwrap().to_string();
+    let phone = phones.choose(&mut rng).unwrap().to_string();
+    let sex = *sexes.choose(&mut rng).unwrap();
+
+    let mut get_random = |v: Vec<&str>| {
+        let return_none = &rng.random::<bool>();
+        if *return_none {
+            return None;
+        }
+        Some(v.choose(&mut rng).unwrap().to_string())
+    };
+
+    let medicare = get_random(medicare_names);
+    let medicare_number = get_random(medicare_numbers);
+    let gender = get_random(genders);
+    let description = get_random(descriptions);
+
+
+    Patient {
+        id,
+        name,
+        surname,
+        national_id,
+        phone,
+        medicare,
+        medicare_number,
+        sex,
+        gender,
+        description,
     }
 }
 

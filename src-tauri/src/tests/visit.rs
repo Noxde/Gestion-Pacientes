@@ -3,9 +3,11 @@ use crate::db::{visit, patient};
 use crate::tests::patient::{sample_patient, another_sample_patient};
 
 use rusqlite::Connection;
-use std::{fs, path::PathBuf, fs::canonicalize};
+use std::{fs, path::PathBuf, fs::canonicalize, fs::read_dir};
 use serial_test::serial;
-use chrono::NaiveDate;
+use rand::prelude::*;
+use chrono::{NaiveDate, NaiveDateTime, DateTime};
+
 
 pub fn setup_test_db() -> (Connection, PathBuf) {
     let db_path = PathBuf::from("src/tests/test_db.sqlite");
@@ -96,6 +98,113 @@ fn visit_patient_2() -> Visit {
         docs: vec![],
         datetime: None,
     }
+}
+
+pub fn get_random_visits(amount: usize, patient_id: i32) -> Vec<Visit> {
+    let mut rng = rand::rng();
+
+    let data_dir = canonicalize("src/tests/test_data")
+        .expect("Failed to get absolute path");
+
+    let files: Vec<String> = read_dir(data_dir)
+        .expect("Failed to read test_data dir")
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().map(|ft| ft.is_file()).unwrap_or(false))
+        .map(|e| e.path().to_string_lossy().into_owned())
+        .collect();
+
+
+    let titles = vec![
+        "Routine Check",
+        "MRI",
+        "Blood Test",
+        "Follow-up appointment scheduled after multiple diagnostic procedures and specialist evaluations",
+        "Emergency Visit at Downtown Medical Center",
+        "X-Ray",
+    ];
+
+    let reasons = vec![
+        "Back pain",
+        "Headache",
+        "Kidney issues requiring extended evaluation",
+        "Routine control",
+        "Post-surgery check after lumbar operation with persistent discomfort and limited mobility",
+    ];
+
+    let diagnoses = vec![
+        "Herniated disc in lower lumbar region",
+        "Hypertension",
+        "Migraine symptoms consistent with prolonged neurological stress and environmental triggers",
+        "Normal",
+    ];
+
+    let treatments = vec![
+        "Physiotherapy",
+        "Medication involving multiple prescriptions adjusted over several weeks of observation",
+        "Extended rest with limited physical activity",
+        "Surgery",
+    ];
+
+    let notes = vec![
+        "Physiotherapy",
+        "Medication",
+        "Patient advised to rest and avoid strenuous activities",
+        "Surgery performed successfully with no complications observed during the recovery period",
+    ];
+
+    let mut visits = Vec::with_capacity(amount);
+
+    for _ in 0..amount {
+        let f_amount: usize = rng.random_range(1..=files.len());
+
+        let id: i32 = rng.random();
+
+        let title = titles.choose(&mut rng).unwrap().to_string();
+
+        let mut get_random = |v: Vec<&str>| {
+            let return_none = &rng.random::<bool>();
+            if *return_none {
+                return None;
+            }
+            Some(v.choose(&mut rng).unwrap().to_string())
+        };
+
+        let reason = get_random(reasons.clone());
+        let diagnosis = get_random(diagnoses.clone());
+        let treatment = get_random(treatments.clone());
+        let notes = get_random(notes.clone());
+
+        let mut docs = Vec::with_capacity(f_amount);
+        let paths: Vec<&String> = files.choose_multiple(&mut rng, f_amount).collect();
+        for i in 0..f_amount {
+
+            docs.push(Doc {
+                name: String::new(),
+                path: paths[i].to_owned(),
+            });
+
+        }
+
+        let datetime = if rng.random_bool(0.5) {
+            Some(DateTime::from_timestamp_nanos(rng.random::<i64>()).naive_utc())
+        } else {
+            None
+        };
+
+        visits.push(Visit {
+            id,
+            patient_id,
+            title,
+            reason,
+            diagnosis,
+            treatment,
+            notes,
+            docs,
+            datetime,
+        });
+    }
+
+    visits
 }
 
 #[test]

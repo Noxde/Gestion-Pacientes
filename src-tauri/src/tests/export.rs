@@ -1,6 +1,7 @@
 use crate::custom_types::structs::Patient;
 use crate::db::{visit, patient};
-use crate::tests::patient::{sample_patient, another_sample_patient};
+use crate::tests::patient::*;
+use crate::tests::visit::get_random_visits;
 use crate::export;
 
 use rusqlite::fallible_iterator::empty;
@@ -8,6 +9,7 @@ use rusqlite::Connection;
 use std::{fs, path::PathBuf, fs::canonicalize};
 use serial_test::serial;
 use chrono::NaiveDate;
+use rand::prelude::*;
 
 fn setup_test_db() -> (Connection, PathBuf) {
     let db_path = PathBuf::from("src/tests/test_db.sqlite");
@@ -109,4 +111,25 @@ fn test_generate_pdf() {
     // Restore .gitkeep
     let gitkeep = exports_path.join(".gitkeep");
     fs::write(gitkeep, vec![]).expect("Failed to restore exports/.gitkeep");
+}
+
+#[test]
+#[ignore]
+#[serial]
+fn test_generate_random_pdf() {
+    let (mut conn, data_dir) = setup_test_db();
+
+    let mut rng = rand::rng();
+
+    let amount: usize = rng.random_range(5..=10);
+
+    let patient = random_patient();
+    let patient = patient::save(patient, &conn).expect("Should save patient");
+    let visits = get_random_visits(amount, patient.id);
+    for v in visits {
+        visit::save(v, &data_dir, &mut conn).expect("Should save visit");
+    }
+
+    // Test default save_path
+    export::generate_pdf(patient.id, &data_dir, &conn, None).unwrap();
 }

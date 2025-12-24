@@ -104,6 +104,8 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     // Get medical history
     let his = get_medical_history(conn, patient_id, data_dir)?;
 
+    println!("{:?}", his);
+
     // Create a new document.
     let mut document = Document::new();
     // Load a font.
@@ -191,10 +193,10 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
     document.embed_file(embed_file).unwrap();
 
-    let data = std::fs::read("src/tests/test_data/test_embed2.xlsx").unwrap();
+    let data = std::fs::read("src/tests/test_data/test_embed2.docx").unwrap();
     let embed_file = EmbeddedFile {
-        path: "test_embed2.xlsx".to_string(),
-        mime_type: Some(MimeType::new("application/vnd.ms-excel").unwrap()),
+        path: "test_embed2.docx".to_string(),
+        mime_type: Some(MimeType::new("application/vnd.openxmlformats-officedocument.wordprocessingml.document").unwrap()),
         description: Some("The description of the file.".to_string()),
         association_kind: AssociationKind::Supplement,
         data: data.into(),
