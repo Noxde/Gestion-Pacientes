@@ -3,6 +3,7 @@ use rusqlite::Connection;
 use crate::patient::get_medical_history;
 use crate::custom_types::structs::{Doc, Patient, MedicalHistory};
 use crate::db::patient;
+use std::collections::VecDeque;
 
 use std::num::NonZeroU64;
 use std::sync::Arc;
@@ -32,6 +33,8 @@ use krilla::{Data, Document};
 use krilla::geom::{ Transform};
 
 const JETBRAINS_MONO_REGULAR: &[u8] = include_bytes!("../assets/fonts/JetBrainsMonoNLNerdFontMono-Regular.ttf");
+const DOC_WIDTH: f32 = 595.0;
+const DOC_HEIGHT: f32 = 842.0;
 
 /// Save the export file in a custom folder or with a custom name, if this fails or `save_path` is
 /// None, retries to save it in `data_dir/exports` with a generated name.
@@ -100,18 +103,118 @@ pub fn save(patient: &Patient, data_dir: &PathBuf, save_path: Option<String>, pd
     })
 }
 
+///Justifies the `text` into lines of `max_width`.
+///`max_width` must be greater than one otherwise an empty String will be returned
+pub fn justify(text: String, max_width: usize) -> String {
+    let mut output = String::new();
+
+    if max_width < 2 {
+        return output;
+    }
+
+    let mut words: VecDeque<String> = text.split_whitespace().map(|s| s.to_string()).collect();
+
+    //For each new line
+    while !words.is_empty() {
+
+        let mut fit: usize = 0; //How many words fit in the current line
+        let mut remaining: usize = max_width; //Remaining space on the line
+        let mut first: usize = 0; //Spaces to add to separate words (0 if first word)
+        let mut total_w_len: usize = 0; //Sum of the length of the words
+
+        for w in &words {
+            let w_len: usize = w.len();
+
+            //Is there space for another word
+            if remaining >= (first + w_len) {
+                fit+=1;
+                remaining-=w_len + first;
+                first = 1;
+                total_w_len+=w_len;
+                continue;
+            }
+
+            //If the next word is too big and there is space in the current line
+            //Cut it and place a first part on the current line
+            //3 = <space><char><hyphen>
+            if (remaining >= (2 + first)) && (w_len > max_width) {
+                //The long word is divided into a first and second part
+                let mut first_part = words[fit].clone();
+
+                //Take all space remaining minus the space (first) and the hyphen
+                let second_part = first_part.split_off(remaining as usize - 1 - first);
+
+                first_part.push('-'); //Add separator
+
+                words[fit] = first_part; //Overwrite the word with the first part
+                words.insert(fit + 1, second_part); //Insert the second part after the first
+
+                fit+=1;
+                //The piece of the cut word will take all remaining space
+                total_w_len+=remaining-1; //-1 space
+            }
+
+            //There is no more space on the line
+            break;
+        }
+
+        let whitespaces = max_width - total_w_len; //Length of the line - length of the words
+
+        let spaces; //Spaces to add between words
+        let mut remainder; //Number of first words that have an extra space
+
+        //Avoid dividing by zero, if fit is one spaces do not matter
+        if fit > 1 {
+            //The spaces are distributed evenly
+            spaces = whitespaces / (fit - 1);
+            //If the spaces is not divisible by the gaps between words (fit - 1)
+            //Then the <remainder> first words will have one extra space
+            remainder = whitespaces % (fit -1);
+        } else {
+            //If there is only one word (fit == 1) there will no spaces
+            spaces = 0;
+            remainder = 0;
+        }
+
+        //Insert the first word (does not require an space)
+        if fit > 0 {
+            output.push_str(&words.pop_front().expect("words should not be empty"));
+            fit-=1;
+        }
+        //For each word to insert in the line
+        for _ in 0..fit {
+            //Spaces to add before inserting the next word
+            //Is equal to spaces, plus one if the word is one of the <remainder> first
+            let current_spaces = if remainder > 0 {
+                remainder-=1;
+                spaces + 1
+            } else {
+                spaces
+            };
+
+            output.push_str(&" ".repeat(current_spaces)); //Insert the spaces
+            output.push_str(&words.pop_front().expect("words should not be empty")); //Insert the word
+        }
+
+        //Insert the newline
+        output.push('\n');
+    }
+
+    output
+}
+
 pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save_path: Option<String>) -> Result<Doc, String> {
     // Get medical history
     let his = get_medical_history(conn, patient_id, data_dir)?;
-
-    println!("{:?}", his);
 
     // Create a new document.
     let mut document = Document::new();
     // Load a font.
     let font = Font::new(JETBRAINS_MONO_REGULAR.to_vec().into(), 0).unwrap();
+    //Page settings
+    let page_settings = PageSettings::new(DOC_WIDTH, DOC_HEIGHT);
     // Add a new page
-    let mut page = document.start_page_with(PageSettings::new(1000.0, 2000.0));
+    let mut page = document.start_page_with(page_settings);
     // Get the surface of the page.
     let mut surface = page.surface();
     // Draw some text.
@@ -134,10 +237,46 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
         Point::from_xy(0.0, 50.0),
         font.clone(),
         16.0,
-        "This text has font size 16!",
+        "This text has \nfont size 16!\r Test enter",
         false,
         TextDirection::Auto,
     );
+    surface.finish();
+    page.finish();
+
+    // Add a new page
+    let mut page = document.start_page();
+    // Get the surface of the page.
+    let mut surface = page.surface();
+    // Draw some text.
+    surface.draw_text(
+        Point::from_xy(0.0, 25.0),
+        font.clone(),
+        40.0,
+        "Informacion del paciente:",
+        false,
+        TextDirection::Auto,
+    );
+
+    surface.set_fill(Some(Fill {
+        paint: rgb::Color::new(255, 0, 0).into(),
+        opacity: NormalizedF32::new(0.5).unwrap(),
+        rule: Default::default(),
+    }));
+    // Draw some more text, in a different color with an opacity and bigger font size.
+    let justified = justify(format!("{:?}", his.patient), 50);
+    let mut y = 40.0;
+    for line in justified.lines() {
+        surface.draw_text(
+            Point::from_xy(0.0, y),
+            font.clone(),
+            16.0,
+            &line,
+            false,
+            TextDirection::Auto,
+        );
+        y+=20.0;
+    }
     surface.finish();
     page.finish();
 
