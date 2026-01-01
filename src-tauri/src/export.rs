@@ -42,10 +42,14 @@ const Y_MARGIN: f32 = 50.0;
 const H1: f32 = 40.0;
 ///Font size to be used for `H2` headings.
 const H2: f32 = 30.0;
+///Font size to be used for `H3` headings.
+const H3: f32 = 20.0;
 ///The font size to be used for regular test.
 const FONT_SIZE: f32 = 16.0;
 ///Width height ratio of the font.
 const FONT_WIDTH: f32 = 0.6;
+///Space between lines
+const LINE_SPACING: f32 = 25.0;
 ///Maximum amount of characters of size `FONT_SIZE` that fit in `DOC_WIDTH` without going into the
 ///`X_MARGIN`.
 //For this font in particular the width of the character is about 0.6 times the
@@ -87,7 +91,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     let full_name = format!("Paciente: {} {}", his.patient.name, his.patient.surname);
     let mut full_name_lines: Vec<String> = justify(
         full_name,
-        MAX_CHARS_PER_LINE);
+        max_chars(H3));
     //Limit the name length to 5 lines
     if full_name_lines.len() > 5 {
         full_name_lines[4].replace_range((mc - 3).., "...");
@@ -96,9 +100,9 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     //Draw the name
     for (i, line) in full_name_lines.iter().enumerate() {
         surface.draw_text(
-            Point::from_xy(X_MARGIN, DOC_HEIGHT - X_MARGIN - (full_name_lines.len() - i) as f32 * 20.0),
+            Point::from_xy(X_MARGIN, DOC_HEIGHT - 2.0 * X_MARGIN - (full_name_lines.len() - i) as f32 * ( H3)),
             font.clone(),
-            FONT_SIZE,
+            H3,
             &line,
             false,
             TextDirection::Auto,
@@ -110,7 +114,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     surface.draw_text(
         Point::from_xy(X_MARGIN, DOC_HEIGHT - X_MARGIN),
         font.clone(),
-        16.0,
+        H3,
         &format!("Generado de forma automática: {}/{}/{} {}:{:0>2}",
             current_time.day(),
             current_time.month(),
@@ -139,7 +143,6 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
         TextDirection::Auto,
     );
 
-    // Draw some more text, in a different color with an opacity and bigger font size.
     let mut patient_info_lines: Vec<String> = Vec::new();
 
     let mut field_lines: Vec<String> = justify(
@@ -215,22 +218,160 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
             false,
             TextDirection::Auto,
         );
-        y+=20.0;
+        y += LINE_SPACING;
 
+        //If the page has no space left start a new one
         if y > (DOC_HEIGHT - Y_MARGIN) {
-
             surface.finish();
             page.finish();
             page = document.start_page();
             surface = page.surface();
+            y = Y_MARGIN + FONT_SIZE;
         }
     }
     surface.finish();
     page.finish();
 
-    let mut page = document.start_page();
-    let mut surface = page.surface();
 
+    // VISITS PAGE/S
+    page = document.start_page();
+    surface = page.surface();
+
+    // Draw title
+    let title = "Visitas";
+    surface.draw_text(
+        Point::from_xy(center(title, H2), Y_MARGIN+H2),
+        font.clone(),
+        H2,
+        title,
+        false,
+        TextDirection::Auto,
+    );
+
+    // Draw footer
+    let part1 = "Los archivos de cada visita (imágenes, documentos, etc) se encuentran adjuntos en este archivo PDF bajo el nombre visita_<id-visita>/<nombre-archivo>.<extensión>.";
+    let part2 = "Por ejemplo el archivo \"radiografía.png\" de la visita con id 3399 se encontraría adjunto con el nombre \"visita_3399/radiografía.png\".";
+    let mut lines = justify(part1.to_string(), max_chars(FONT_SIZE));
+    lines.push("".to_string()); //Separator
+    lines.append(&mut justify(part2.to_string(), max_chars(FONT_SIZE)));
+
+    for (i, line) in lines.iter().enumerate() {
+        surface.draw_text(
+            Point::from_xy(X_MARGIN, DOC_HEIGHT - 2.0 * X_MARGIN - (lines.len() - i) as f32 * ( FONT_SIZE)),
+            font.clone(),
+            FONT_SIZE,
+            &line,
+            false,
+            TextDirection::Auto,
+        );
+    }
+
+    surface.finish();
+    page.finish();
+
+    for visit in his.visits {
+        page = document.start_page();
+        surface = page.surface();
+
+        // Draw id
+        let title = &format!("Visita ID: {}", visit.id);
+        surface.draw_text(
+            Point::from_xy(center(title, H3), Y_MARGIN+H3),
+            font.clone(),
+            H3,
+            title,
+            false,
+            TextDirection::Auto,
+        );
+
+        // Process visit info
+        let mut visit_info_lines: Vec<String> = Vec::new();
+
+        let mut field_lines: Vec<String> = justify(
+            format!("Título: {}", visit.title),
+            MAX_CHARS_PER_LINE);
+
+        visit_info_lines.append(&mut field_lines);
+
+        if let Some(reason) = &visit.reason {
+            let mut field_lines: Vec<String> = justify(
+            format!("Razón: {}", reason),
+                MAX_CHARS_PER_LINE);
+
+            visit_info_lines.append(&mut field_lines);
+        }
+
+        if let Some(diagnosis) = &visit.diagnosis {
+            let mut field_lines: Vec<String> = justify(
+            format!("Razón: {}", diagnosis),
+                MAX_CHARS_PER_LINE);
+
+            visit_info_lines.append(&mut field_lines);
+        }
+
+        if let Some(treatment) = &visit.treatment {
+            let mut field_lines: Vec<String> = justify(
+            format!("Razón: {}", treatment),
+                MAX_CHARS_PER_LINE);
+
+            visit_info_lines.append(&mut field_lines);
+        }
+
+        if let Some(notes) = &visit.notes {
+            let mut field_lines: Vec<String> = justify(
+            format!("Razón: {}", notes),
+                MAX_CHARS_PER_LINE);
+
+            visit_info_lines.append(&mut field_lines);
+        }
+
+        if let Some(datetime) = &visit.datetime {
+            visit_info_lines.push(format!("Fecha y Hora: {}/{}/{} {}:{:0>2}",
+                datetime.day(),
+                datetime.month(),
+                datetime.year(),
+                datetime.hour(),
+                datetime.minute(),
+            ));
+        }
+
+        if !visit.docs.is_empty() {
+            visit_info_lines.push("Archivos:".to_string());
+
+            for doc in visit.docs {
+               visit_info_lines.push(format!(
+                    "    - {}", doc.name));
+            }
+        }
+
+        let mut y = Y_MARGIN + FONT_SIZE + 50.0;
+        for line in visit_info_lines {
+            surface.draw_text(
+                Point::from_xy(X_MARGIN, y),
+                font.clone(),
+                FONT_SIZE,
+                &line,
+                false,
+                TextDirection::Auto,
+            );
+            y += LINE_SPACING;
+
+            //If the page has no space left start a new one
+            if y > (DOC_HEIGHT - Y_MARGIN) {
+                surface.finish();
+                page.finish();
+                page = document.start_page();
+                surface = page.surface();
+                y = Y_MARGIN + FONT_SIZE;
+            }
+        }
+
+        surface.finish();
+        page.finish();
+    }
+
+    page = document.start_page();
+    surface = page.surface();
 
     let data = std::fs::read("src/tests/test_data/test_embed4.jpg").unwrap();
     let image = Image::from_jpeg(data.into(), false).unwrap();
@@ -342,7 +483,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
     let finish_time = Local::now();
 
-    println!("Took {}ms", (finish_time - start_time).num_milliseconds());
+    println!("Took {}ms to generate and save the file.", (finish_time - start_time).num_milliseconds());
 
     res
 }
@@ -529,4 +670,9 @@ pub fn justify(text: String, max_width: usize) -> Vec<String> {
 fn center(text: &str, font_size: f32) -> f32 {
     let line_width = text.len() as f32 * font_size * FONT_WIDTH;
     ((DOC_WIDTH - line_width) / 2.0).max(25.0)
+}
+
+///Returns the maximum amount of characters of `font_size` that fit in one line
+fn max_chars(font_size: f32) -> usize {
+    ((DOC_WIDTH - (2.0 * X_MARGIN)) / (font_size * FONT_WIDTH)) as usize
 }
