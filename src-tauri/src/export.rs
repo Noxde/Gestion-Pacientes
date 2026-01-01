@@ -54,6 +54,8 @@ const MAX_CHARS_PER_LINE: usize = ((DOC_WIDTH - (2.0 * X_MARGIN)) / (FONT_SIZE *
 
 
 pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save_path: Option<String>) -> Result<Doc, String> {
+    let start_time = Local::now();
+
     let mc = MAX_CHARS_PER_LINE;
 
     // Get medical history
@@ -85,7 +87,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     let full_name = format!("Paciente: {} {}", his.patient.name, his.patient.surname);
     let mut full_name_lines: Vec<String> = justify(
         full_name,
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
     //Limit the name length to 5 lines
     if full_name_lines.len() > 5 {
         full_name_lines[4].replace_range((mc - 3).., "...");
@@ -109,7 +111,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
         Point::from_xy(X_MARGIN, DOC_HEIGHT - X_MARGIN),
         font.clone(),
         16.0,
-        &format!("Generado de forma automática: {}/{}/{} {}:{}",
+        &format!("Generado de forma automática: {}/{}/{} {}:{:0>2}",
             current_time.day(),
             current_time.month(),
             current_time.year(),
@@ -142,33 +144,33 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
     let mut field_lines: Vec<String> = justify(
         format!("Nombre: {}", his.patient.name),
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
 
     let mut field_lines: Vec<String> = justify(
         format!("Apellido: {}", his.patient.surname),
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
 
     let mut field_lines: Vec<String> = justify(
         format!("DNI: {}", his.patient.national_id),
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
 
 
     let mut field_lines: Vec<String> = justify(
         format!("Teléfono: {}", his.patient.phone),
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
 
     if let Some(medicare) = &his.patient.medicare {
         let mut field_lines: Vec<String> = justify(
             format!("Obra Social: {}", medicare),
-            MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+            MAX_CHARS_PER_LINE);
 
         patient_info_lines.append(&mut field_lines);
     }
@@ -176,21 +178,21 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     if let Some(medicare_number) = &his.patient.medicare_number {
         let mut field_lines: Vec<String> = justify(
             format!("Número de Obra Social: {}", medicare_number),
-            MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+            MAX_CHARS_PER_LINE);
 
         patient_info_lines.append(&mut field_lines);
     }
 
     let mut field_lines: Vec<String> = justify(
         format!("Sexo: {:?}", his.patient.sex),
-        MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+        MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
 
     if let Some(gender) = &his.patient.gender {
         let mut field_lines: Vec<String> = justify(
             format!("Género: {}", gender),
-            MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+            MAX_CHARS_PER_LINE);
 
         patient_info_lines.append(&mut field_lines);
     }
@@ -198,22 +200,30 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     if let Some(description) = &his.patient.description {
         let mut field_lines: Vec<String> = justify(
             format!("Descripción: {}", description),
-            MAX_CHARS_PER_LINE).lines().map(|l| l.to_owned()).collect();
+            MAX_CHARS_PER_LINE);
 
         patient_info_lines.append(&mut field_lines);
     }
 
     let mut y = 300.0;
-    for (i, line) in patient_info_lines.iter().enumerate() {
+    for line in patient_info_lines {
         surface.draw_text(
             Point::from_xy(X_MARGIN, y),
             font.clone(),
-            16.0,
+            FONT_SIZE,
             &line,
             false,
             TextDirection::Auto,
         );
         y+=20.0;
+
+        if y > (DOC_HEIGHT - Y_MARGIN) {
+
+            surface.finish();
+            page.finish();
+            page = document.start_page();
+            surface = page.surface();
+        }
     }
     surface.finish();
     page.finish();
@@ -328,7 +338,13 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
     let pdf = document.finish().unwrap();
 
-    save(&his.patient, data_dir, save_path, &pdf)
+    let res = save(&his.patient, data_dir, save_path, &pdf);
+
+    let finish_time = Local::now();
+
+    println!("Took {}ms", (finish_time - start_time).num_milliseconds());
+
+    res
 }
 
 /// Save the export file in a custom folder or with a custom name, if this fails or `save_path` is
@@ -400,15 +416,16 @@ pub fn save(patient: &Patient, data_dir: &PathBuf, save_path: Option<String>, pd
 
 ///Justifies the `text` into lines of `max_width`.
 ///`max_width` must be greater than one otherwise an empty String will be returned
-pub fn justify(text: String, max_width: usize) -> String {
-    let mut output = String::new();
+pub fn justify(text: String, max_width: usize) -> Vec<String> {
+    let mut output = Vec::new();
 
     if max_width < 2 {
         return output;
     }
 
     if text.len() <= max_width {
-        return text;
+        output.push(text);
+        return output;
     }
 
     let mut words: VecDeque<String> = text.split_whitespace().map(|s| s.to_string()).collect();
@@ -462,22 +479,28 @@ pub fn justify(text: String, max_width: usize) -> String {
         let spaces; //Spaces to add between words
         let mut remainder; //Number of first words that have an extra space
 
-        //Avoid dividing by zero, if fit is one spaces do not matter
-        if fit > 1 {
+        if fit == words.len() {
+            //If this is the last line only one space should be used (Left align)
+            spaces = 1;
+            remainder = 0;
+        } else if fit > 1 {
             //The spaces are distributed evenly
             spaces = whitespaces / (fit - 1);
             //If the spaces is not divisible by the gaps between words (fit - 1)
             //Then the <remainder> first words will have one extra space
             remainder = whitespaces % (fit -1);
+            //Avoid dividing by zero, if fit is one spaces do not matter
         } else {
             //If there is only one word (fit == 1) there will no spaces
             spaces = 0;
             remainder = 0;
         }
 
+        //The line to be added to the output
+        let mut new_line = String::new();
         //Insert the first word (does not require an space)
         if fit > 0 {
-            output.push_str(&words.pop_front().expect("words should not be empty"));
+            new_line.push_str(&words.pop_front().expect("words should not be empty"));
             fit-=1;
         }
         //For each word to insert in the line
@@ -491,12 +514,12 @@ pub fn justify(text: String, max_width: usize) -> String {
                 spaces
             };
 
-            output.push_str(&" ".repeat(current_spaces)); //Insert the spaces
-            output.push_str(&words.pop_front().expect("words should not be empty")); //Insert the word
+            new_line.push_str(&" ".repeat(current_spaces)); //Insert the spaces
+            new_line.push_str(&words.pop_front().expect("words should not be empty")); //Insert the word
         }
 
         //Insert the newline
-        output.push('\n');
+        output.push(new_line);
     }
 
     output

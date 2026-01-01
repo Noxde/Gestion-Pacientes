@@ -2,7 +2,7 @@ use crate::custom_types::structs::Patient;
 use crate::db::{visit, patient};
 use crate::tests::patient::*;
 use crate::tests::visit::get_random_visits;
-use crate::export;
+use crate::export::{self, justify};
 
 use rusqlite::fallible_iterator::empty;
 use rusqlite::Connection;
@@ -132,4 +132,29 @@ fn test_generate_random_pdf() {
 
     // Test default save_path
     export::generate_pdf(patient.id, &data_dir, &conn, None).unwrap();
+}
+
+#[test]
+fn test_justify() {
+    let text = "Paciente: Charles Alexander Long Name Francis Johnson Thompson York";
+    let lines = vec![
+        "Paciente:  Charles  Alexander  Long Name Francis Johnson",
+        "Thompson York"
+    ];
+    assert_eq!(justify(text.to_string(), 56), lines);
+
+    //If the text len < max_width, the text is returned directly
+    let text = "Hello   how   are   you";
+    let lines = vec![text];
+    assert_eq!(justify(text.to_string(), 30), lines);
+
+    //max_width must be > 1
+    assert!(justify(text.to_string(), 1).is_empty());
+
+    let text = "ThisIsATest";
+    let lines = vec![
+        "T-", "h-", "i-", "s-", "I-",
+        "s-", "A-", "T-", "e-", "st"
+    ];
+    assert_eq!(justify(text.to_string(), 2), lines);
 }
