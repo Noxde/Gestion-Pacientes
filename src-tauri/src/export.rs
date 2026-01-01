@@ -1,9 +1,11 @@
 use chrono::format::format;
 use rusqlite::Connection;
+use crate::custom_types::enums::FileType;
 use crate::patient::get_medical_history;
 use crate::custom_types::structs::{Doc, Patient, MedicalHistory};
 use crate::db::patient;
 use std::collections::VecDeque;
+use std::str::FromStr;
 use chrono::{Datelike, Local, Timelike};
 
 use std::num::NonZeroU64;
@@ -133,7 +135,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     surface = page.surface();
 
     // Draw title
-    let title = "Informacion del paciente";
+    let title = "Información del paciente";
     surface.draw_text(
         Point::from_xy(center(title, H2), Y_MARGIN+H2),
         font.clone(),
@@ -249,8 +251,8 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     );
 
     // Draw footer
-    let part1 = "Los archivos de cada visita (imágenes, documentos, etc) se encuentran adjuntos en este archivo PDF bajo el nombre visita_<id-visita>/<nombre-archivo>.<extensión>.";
-    let part2 = "Por ejemplo el archivo \"radiografía.png\" de la visita con id 3399 se encontraría adjunto con el nombre \"visita_3399/radiografía.png\".";
+    let part1 = "Los archivos de cada visita (imágenes, documentos, etc) se encuentran adjuntos en este archivo PDF bajo el nombre visita_<id-visita>_<nombre-archivo>.<extensión>.";
+    let part2 = "Por ejemplo el archivo \"radiografía.png\" de la visita con id 3399 se encontraría adjunto con el nombre \"visita_3399_radiografía.png\".";
     let mut lines = justify(part1.to_string(), max_chars(FONT_SIZE));
     lines.push("".to_string()); //Separator
     lines.append(&mut justify(part2.to_string(), max_chars(FONT_SIZE)));
@@ -338,7 +340,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
         if !visit.docs.is_empty() {
             visit_info_lines.push("Archivos:".to_string());
 
-            for doc in visit.docs {
+            for doc in &visit.docs {
                visit_info_lines.push(format!(
                     "    - {}", doc.name));
             }
@@ -368,6 +370,33 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
         surface.finish();
         page.finish();
+
+        //Embed docs
+        for doc in visit.docs {
+            let data = if let Ok(data) = std::fs::read(doc.path) {
+                data
+            } else {
+                continue;
+            };
+
+            let file_type = if let Ok(file_type) = FileType::from_str(&doc.name) {
+                file_type
+            } else {
+                continue;
+            };
+            let embed_file = EmbeddedFile {
+                path: format!("visit_{}_{}", visit.id, doc.name),
+                mime_type: Some(MimeType::new(file_type.to_mime()).unwrap()),
+                description: None,
+                association_kind: AssociationKind::Supplement,
+                data: data.into(),
+                modification_date: None,
+                compress: Some(false),
+                location: None,
+            };
+
+            document.embed_file(embed_file).unwrap();
+        }
     }
 
     page = document.start_page();
@@ -384,15 +413,6 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     let size = image.size();
     surface.draw_image(image, Size::from_wh(size.0 as f32, size.1 as f32).unwrap());
 
-    // Draw some text.
-    surface.draw_text(
-        Point::from_xy(0.0, 25.0),
-        font.clone(),
-        14.0,
-        "This text has font size 14!",
-        false,
-        TextDirection::Auto,
-    );
 
     // Finish the page.
     surface.finish();
@@ -406,76 +426,6 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
         .into(),
     );
     page.finish();
-
-    let data = std::fs::read("src/tests/test_data/test_embed1.pdf").unwrap();
-    let embed_file = EmbeddedFile {
-        path: "test_embed1.pdf".to_string(),
-        mime_type: Some(MimeType::new("application/pdf").unwrap()),
-        description: Some("The description of the file.".to_string()),
-        association_kind: AssociationKind::Supplement,
-        data: data.into(),
-        modification_date: Some(DateTime::new(2001)),
-        compress: Some(false),
-        location: None,
-    };
-
-    document.embed_file(embed_file).unwrap();
-
-    let data = std::fs::read("src/tests/test_data/test_embed2.docx").unwrap();
-    let embed_file = EmbeddedFile {
-        path: "test_embed2.docx".to_string(),
-        mime_type: Some(MimeType::new("application/vnd.openxmlformats-officedocument.wordprocessingml.document").unwrap()),
-        description: Some("The description of the file.".to_string()),
-        association_kind: AssociationKind::Supplement,
-        data: data.into(),
-        modification_date: Some(DateTime::new(2001)),
-        compress: Some(false),
-        location: None,
-    };
-
-    document.embed_file(embed_file).unwrap();
-
-    let data = std::fs::read("src/tests/test_data/test_embed3.mp4").unwrap();
-    let embed_file = EmbeddedFile {
-        path: "test_embed3.mp4".to_string(),
-        mime_type: Some(MimeType::new("video/mp4").unwrap()),
-        description: Some("The description of the file.".to_string()),
-        association_kind: AssociationKind::Supplement,
-        data: data.into(),
-        modification_date: Some(DateTime::new(2001)),
-        compress: Some(false),
-        location: None,
-    };
-
-    document.embed_file(embed_file).unwrap();
-
-    let data = std::fs::read("src/tests/test_data/test_embed4.jpg").unwrap();
-    let embed_file = EmbeddedFile {
-        path: "test_embed4.jpg".to_string(),
-        mime_type: Some(MimeType::new("image/jpg").unwrap()),
-        description: Some("The description of the file.".to_string()),
-        association_kind: AssociationKind::Unspecified,
-        data: data.into(),
-        modification_date: Some(DateTime::new(2001)),
-        compress: Some(false),
-        location: None,
-    };
-
-    document.embed_file(embed_file).unwrap();
-
-    let data = std::fs::read("src/tests/test_data/test_embed5.png").unwrap();
-    let embed_file = EmbeddedFile {
-        path: "test_embed5.png".to_string(),
-        mime_type: Some(MimeType::new("image/png").unwrap()),
-        description: Some("The description of the file.".to_string()),
-        association_kind: AssociationKind::Unspecified,
-        data: data.into(),
-        modification_date: Some(DateTime::new(2001)),
-        compress: Some(false),
-        location: None,
-    };
-
-    document.embed_file(embed_file).unwrap();
 
     let pdf = document.finish().unwrap();
 
