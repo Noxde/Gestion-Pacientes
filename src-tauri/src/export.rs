@@ -1,5 +1,6 @@
 use chrono::format::format;
 use rusqlite::Connection;
+use tauri::utils::config::PreventOverflowMargin;
 use crate::custom_types::enums::FileType;
 use crate::patient::get_medical_history;
 use crate::custom_types::structs::{Doc, Patient, MedicalHistory};
@@ -189,7 +190,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
     }
 
     let mut field_lines: Vec<String> = justify(
-        format!("Sexo: {:?}", his.patient.sex),
+        format!("Sexo: {}", his.patient.sex.to_string()),
         MAX_CHARS_PER_LINE);
 
     patient_info_lines.append(&mut field_lines);
@@ -305,7 +306,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
         if let Some(diagnosis) = &visit.diagnosis {
             let mut field_lines: Vec<String> = justify(
-            format!("Razón: {}", diagnosis),
+            format!("Diagnosis: {}", diagnosis),
                 MAX_CHARS_PER_LINE);
 
             visit_info_lines.append(&mut field_lines);
@@ -313,7 +314,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
         if let Some(treatment) = &visit.treatment {
             let mut field_lines: Vec<String> = justify(
-            format!("Razón: {}", treatment),
+            format!("Tratamiento: {}", treatment),
                 MAX_CHARS_PER_LINE);
 
             visit_info_lines.append(&mut field_lines);
@@ -321,7 +322,7 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
 
         if let Some(notes) = &visit.notes {
             let mut field_lines: Vec<String> = justify(
-            format!("Razón: {}", notes),
+            format!("Notas: {}", notes),
                 MAX_CHARS_PER_LINE);
 
             visit_info_lines.append(&mut field_lines);
@@ -368,10 +369,85 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
             }
         }
 
+        //Add spacing before the images
+        y += LINE_SPACING;
+
+        //Draw images
+        for doc in &visit.docs {
+            let ft = if let Ok(ft) =  FileType::from_str(&doc.name) {
+                ft
+            } else {
+                continue;
+            };
+
+            let data = if let Ok(data) = std::fs::read(&doc.path) {
+                data
+            } else {
+                continue;
+            };
+
+            let res = match ft {
+                FileType::PNG => krilla::image::Image::from_png(data.into(), false),
+                FileType::JPG => krilla::image::Image::from_jpeg(data.into(), false),
+                _ => continue
+            };
+
+            let image = match res {
+                Some(img) => img,
+                None => continue
+            };
+
+            let title_height = LINE_SPACING + FONT_SIZE; //Image title height
+            let image_width = (image.size().0 as f32).min(DOC_WIDTH - 2.0 * X_MARGIN);
+            let image_height = (image.size().1 as f32).min(DOC_HEIGHT - 2.0 * Y_MARGIN - title_height);
+
+            //If the page has no space left for the image start a new one
+            if (DOC_HEIGHT - Y_MARGIN - y) < (image_height + title_height) {
+                surface.finish();
+                page.finish();
+                page = document.start_page();
+                surface = page.surface();
+                y = Y_MARGIN + FONT_SIZE;
+            }
+
+            //Calculate how much to shift the image to the right so that it's centered.
+            let shift = (DOC_WIDTH - image_width) / 2.0;
+
+            //Draw the image title
+            surface.draw_text(
+                Point::from_xy(X_MARGIN, y),
+                font.clone(),
+                FONT_SIZE,
+                &format!("visit_{}_{}", visit.id, doc.name),
+                false,
+                TextDirection::Auto
+            );
+
+            //Add a padding between the bottom of the text and the next image.
+            y += 10.0;
+
+            //Push a transform that shifts the image to the center horizontally
+            //and the given y position.
+            surface.push_transform(&Transform::from_translate(shift, y));
+
+            //Draw the image
+            surface.draw_image(
+                image, Size::from_wh(image_width, image_height).unwrap()
+            );
+            surface.pop();
+
+            //Add another padding of 10 between the bottom of the image and the next
+            //title.
+            y += image_height + title_height;
+        }
+
         surface.finish();
         page.finish();
 
         //Embed docs
+        //This for has to be after finishing the surface and page
+        //embed_file() requires a new &mut to document
+        //Otherwise there would be two &mut to document (cant compile)
         for doc in visit.docs {
             let data = if let Ok(data) = std::fs::read(doc.path) {
                 data
@@ -398,34 +474,6 @@ pub fn generate_pdf(patient_id: i32, data_dir: &PathBuf, conn: &Connection, save
             document.embed_file(embed_file).unwrap();
         }
     }
-
-    page = document.start_page();
-    surface = page.surface();
-
-    let data = std::fs::read("src/tests/test_data/test_embed4.jpg").unwrap();
-    let image = Image::from_jpeg(data.into(), false).unwrap();
-    let size = image.size();
-    surface.draw_image(image, Size::from_wh(size.0 as f32, size.1 as f32).unwrap());
-
-
-    let data = std::fs::read("src/tests/test_data/test_embed5.png").unwrap();
-    let image = Image::from_png(data.into(), false).unwrap();
-    let size = image.size();
-    surface.draw_image(image, Size::from_wh(size.0 as f32, size.1 as f32).unwrap());
-
-
-    // Finish the page.
-    surface.finish();
-
-    // Add annotation
-    page.add_annotation(
-        LinkAnnotation::new(
-            Rect::from_xywh(50.0, 50.0, 100.0, 100.0).unwrap(),
-            Target::Action(LinkAction::new("https://www.youtube.com".to_string()).into()),
-        )
-        .into(),
-    );
-    page.finish();
 
     let pdf = document.finish().unwrap();
 

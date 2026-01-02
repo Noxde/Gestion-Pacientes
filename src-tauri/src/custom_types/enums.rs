@@ -2,6 +2,7 @@ use rusqlite::types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::str::FromStr;
+use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Sex {
@@ -31,7 +32,17 @@ impl ToSql for Sex {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl fmt::Display for Sex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Male => write!(f, "Masculino"),
+            Self::Female => write!(f, "Femenino"),
+            Self::Other => write!(f, "Otro"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum FileType {
     PDF,
     MP4,
@@ -52,6 +63,12 @@ impl FileType {
             FileType::PNG  => "image/png",
             FileType::DOCX => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         }
+    }
+
+
+    ///Return true if the FileType is `PNG` or `JPG`.
+    pub fn is_image(&self) -> bool {
+        (*self == Self::PNG) || (*self == Self::JPG)
     }
 }
 
