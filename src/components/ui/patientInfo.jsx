@@ -22,15 +22,16 @@ import {
 } from "@/components/shadcn/accordion";
 import { CalendarIcon } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
+import VisitDialog from "./Visit/visitDialog";
 
 function PatientInfo({ selected }) {
-  const [toAdd, setToAdd] = useState({});
   const [visitas, setVisitas] = useState([]);
   const [dialogContent, setDialogContent] = useState("add");
   const { setPatients, setSelected } = useContext(PatientsContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { showToast, toast } = useContext(AlertContext);
+  const [toEdit, setToEdit] = useState(null);
 
   // Get visits on mount
   useEffect(() => {
@@ -56,79 +57,12 @@ function PatientInfo({ selected }) {
       <DialogContent showCloseButton={false}>
         {dialogContent === "add" ? (
           <>
-            <DialogHeader>
-              <DialogTitle>Agregar Visita</DialogTitle>
-            </DialogHeader>
-
-            <Separator />
-            <Visita
-              onChange={(e) => {
-                console.log(e);
-                setToAdd(e);
-              }}
+            <VisitDialog
+              setIsDialogOpen={setIsDialogOpen}
+              setVisitas={setVisitas}
+              toEdit={toEdit}
+              selected={selected}
             />
-            <Separator />
-
-            <div className="flex gap-2 justify-self-end">
-              <Button
-                onClick={() => setIsDialogOpen(false)}
-                variant={"outline"}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={async () => {
-                  const {
-                    datetime,
-                    reason,
-                    diagnosis,
-                    treatment,
-                    notes,
-                    docs,
-                  } = toAdd;
-
-                  try {
-                    const res = await invoke("save_visit_comm", {
-                      newVisit: {
-                        id: 1,
-                        patient_id: selected.id,
-                        title: "Placeholder not used yet",
-                        docs,
-                        datetime: new Date(
-                          datetime.getTime() -
-                            datetime.getTimezoneOffset() * 60000 // Fix for UTC date
-                        )
-                          .toJSON()
-                          .replace("Z", ""),
-                        reason,
-                        diagnosis,
-                        treatment,
-                        notes,
-                      },
-                      patientId: selected.id,
-                    });
-                    setVisitas((prev) =>
-                      [res, ...prev].sort(
-                        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-                      )
-                    );
-                    setToAdd({});
-                    setIsDialogOpen(false);
-                    showToast("Visita agregada", "", null, "success");
-                  } catch (err) {
-                    showToast(
-                      "Ocurrio un error al agregar la visita",
-                      err,
-                      null,
-                      "error"
-                    );
-                    console.error(err);
-                  }
-                }}
-              >
-                Agregar
-              </Button>
-            </div>
           </>
         ) : dialogContent === "edit" ? (
           <>
@@ -199,6 +133,7 @@ function PatientInfo({ selected }) {
                             extensions: ["pdf"],
                           },
                         ],
+                        defaultPath: `Historia-medica-${selected.name}-${selected.surname}.pdf`,
                       });
                       if (!path) return;
                       setIsDialogOpen(false);
@@ -270,6 +205,7 @@ function PatientInfo({ selected }) {
             onClick={() => {
               setDialogContent("add");
               setIsDialogOpen(true);
+              setToEdit(null);
             }}
           >
             Agregar Visita
@@ -301,9 +237,25 @@ function PatientInfo({ selected }) {
               <Accordion type="single" collapsible>
                 {visitas.map((x, i, arr) => (
                   <AccordionItem value={`item-${i + 1}`}>
-                    <AccordionTrigger className="items-center px-5">
+                    <AccordionTrigger
+                      className="group items-center px-5"
+                      component={
+                        <Button
+                          variant="outline"
+                          className="editarVisita group-data-[state=open]:opacity-100 transition-opacity opacity-0"
+                          onClick={() => {
+                            setDialogContent("add");
+                            setIsDialogOpen(true);
+                            setToEdit(x);
+                          }}
+                        >
+                          Editar Visita
+                        </Button>
+                      }
+                    >
                       <div className="flex items-center">
                         <CalendarIcon className="mr-5 text-blue-400" />
+
                         <div className="flex flex-col">
                           <span className="font-bold">
                             {new Intl.DateTimeFormat("es-ES", {
