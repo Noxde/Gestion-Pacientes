@@ -26,7 +26,7 @@ const Visita = forwardRef(function (
       docs: [],
     }
   );
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState(visita?.docs ?? []);
 
   useEffect(() => {
     if (typeof onChange == "function") {
@@ -59,7 +59,7 @@ const Visita = forwardRef(function (
         <div
           ref={ref}
           className={cn(
-            `flex flex-col gap-2 ${visita ? "pointer-events-none" : ""}`,
+            `flex flex-col gap-2 ${readOnly ? "pointer-events-none" : ""}`,
             className
           )}
         >
